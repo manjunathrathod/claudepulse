@@ -48,6 +48,41 @@
   </div>
 </section>
 
+{{with $.Account}}
+<section class="card" id="account">
+  <div class="card-head"><div><h2 class="card-title">Account {{template "help.html" "Signed-in Claude account, from ~/.claude.json (no tokens are read)"}}</h2><p class="card-sub">{{.Email}}</p></div>{{if .OrganizationType}}<span class="chip plan">{{planLabel .OrganizationType}} plan</span>{{end}}</div>
+  <div class="grid grid-3">
+    <dl class="kv">
+      <div><dt>Organization</dt><dd>{{if .OrganizationName}}{{.OrganizationName}}{{else}}—{{end}}</dd></div>
+      <div><dt>Role</dt><dd>{{if .Role}}{{.Role}}{{else}}—{{end}}</dd></div>
+      <div><dt>Billing</dt><dd class="mono">{{if .BillingType}}{{.BillingType}}{{else}}—{{end}}</dd></div>
+      <div><dt>Extra usage</dt><dd>{{if .ExtraUsageEnabled}}enabled{{else}}off{{end}}</dd></div>
+    </dl>
+    <dl class="kv">
+      <div><dt>Account created</dt><dd>{{date .AccountCreatedAt}}</dd></div>
+      <div><dt>Subscribed since</dt><dd>{{date .SubscriptionCreatedAt}}</dd></div>
+      <div><dt>First Claude Code start</dt><dd>{{date .FirstStart}}</dd></div>
+      <div><dt>Launches</dt><dd class="mono">{{comma (int64 .Startups)}}{{if .InstallMethod}} <span class="dim">· {{.InstallMethod}} install</span>{{end}}</dd></div>
+    </dl>
+    <div>
+      {{with .Usage}}
+      <ul class="meter-list compact">
+        {{range .Windows}}
+        <li class="meter">
+          <div class="meter-row"><span class="meter-name">{{.Label}}</span>{{if .Stale}}<span class="meter-val dim">reset · was {{.Utilization}}%</span>{{else}}<span class="meter-val mono">{{.Utilization}}% · resets {{ago .ResetsAt}}</span>{{end}}</div>
+          <div class="meter-track"><div class="meter-fill{{if .Stale}} stale{{else if ge .Utilization 90}} danger{{else if ge .Utilization 70}} warn{{else}} accent{{end}}" style="width:{{.Utilization}}%"></div></div>
+        </li>
+        {{end}}
+      </ul>
+      <p class="note">Usage as last checked by Claude Code {{ago .FetchedAt}}.</p>
+      {{else}}
+      <div class="empty">No usage snapshot cached.</div>
+      {{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+
 <section class="grid grid-2-1">
   <div class="card">
     <div class="card-head"><div><h2 class="card-title">Disk usage {{template "help.html" "Bytes and file counts per top-level entry of ~/.claude"}}</h2><p class="card-sub">Largest first · recomputed every 5 minutes</p></div></div>

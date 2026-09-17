@@ -20,6 +20,8 @@ import (
 	"claude-monitor/internal/claudedir"
 	"claude-monitor/internal/claudedir/jsonl"
 	"claude-monitor/internal/store"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 // Indexer performs full and incremental scans.
@@ -34,6 +36,10 @@ type Indexer struct {
 
 	scanning     atomic.Bool
 	lastDirStats time.Time
+
+	kick     chan struct{} // coalesced "scan soon" requests (watcher, API)
+	watcher  *fsnotify.Watcher
+	watching atomic.Bool
 }
 
 // Stats describes the most recent scan.
@@ -53,7 +59,7 @@ type Stats struct {
 
 // New creates an indexer.
 func New(dir claudedir.Dir, st *store.Store, log *slog.Logger) *Indexer {
-	return &Indexer{dir: dir, st: st, log: log}
+	return &Indexer{dir: dir, st: st, log: log, kick: make(chan struct{}, 1)}
 }
 
 // Status returns a copy of the latest stats.
@@ -68,24 +74,51 @@ func (ix *Indexer) Status(ctx context.Context) Stats {
 	return s
 }
 
-// Run performs a scan now, then again every interval until ctx is done.
+// Run performs a scan now, then rescans whenever the file watcher reports a
+// change (debounced) and at least every interval, until ctx is done.
 func (ix *Indexer) Run(ctx context.Context, interval time.Duration) {
-	if err := ix.Scan(ctx); err != nil && !errors.Is(err, context.Canceled) {
-		ix.log.Error("initial scan failed", "err", err)
+	scan := func(reason string) {
+		if err := ix.Scan(ctx); err != nil && !errors.Is(err, context.Canceled) {
+			ix.log.Error("scan failed", "reason", reason, "err", err)
+		}
+		if ctx.Err() == nil {
+			ix.syncWatches() // never race a concurrent Close (see below)
+		}
 	}
+	// Run is the sole owner of the watcher: it is created here, used only from
+	// this goroutine (syncWatches) and the event loop (reads), and closed here
+	// after the event loop has returned. Closing while an Add is in flight can
+	// block forever in fsnotify's Windows backend.
+	ix.startWatcher()
+	ix.syncWatches() // watch before the first scan so nothing created meanwhile is missed
+	watchDone := make(chan struct{})
+	go func() {
+		defer close(watchDone)
+		ix.watch(ctx)
+	}()
+	scan("startup")
 	t := time.NewTicker(interval)
 	defer t.Stop()
+	defer func() {
+		<-watchDone
+		if ix.watcher != nil {
+			ix.watcher.Close()
+		}
+	}()
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-t.C:
-			if err := ix.Scan(ctx); err != nil && !errors.Is(err, context.Canceled) {
-				ix.log.Error("scan failed", "err", err)
-			}
+			scan("ticker")
+		case <-ix.kick:
+			scan("watch")
 		}
 	}
 }
+
+// Watching reports whether file-system notifications are active.
+func (ix *Indexer) Watching() bool { return ix.watching.Load() }
 
 // Scan performs one full pass: transcripts (incrementally), single-file
 // sources, live sessions, rollups. Concurrent calls are serialised.
@@ -454,6 +487,16 @@ func (ix *Indexer) scanMeta(ctx context.Context) error {
 				return err
 			}
 		}
+	}
+	if acct, err := ix.dir.ReadAccount(); err != nil {
+		ix.log.Warn("account file", "err", err)
+	} else if acct != nil {
+		b, _ := json.Marshal(acct)
+		if err := ix.st.SetMeta(ctx, "account", string(b)); err != nil {
+			return err
+		}
+	} else if err := ix.st.DeleteMeta(ctx, "account"); err != nil {
+		return err
 	}
 	return ix.st.SetMeta(ctx, "claude_dir", ix.dir.Root)
 }

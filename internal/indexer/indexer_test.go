@@ -426,6 +426,64 @@ func TestConfigScan(t *testing.T) {
 	}
 }
 
+// TestWatcherKicksScan: creating a transcript in a new project directory must
+// trigger a scan via fsnotify without waiting for the ticker.
+func TestWatcherKicksScan(t *testing.T) {
+	root := copyFixture(t)
+	ix, st := newIndexer(t, root)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	done := make(chan struct{})
+	go func() {
+		ix.Run(ctx, time.Hour) // ticker effectively disabled; only the watcher can rescan
+		close(done)
+	}()
+	// Wait for the startup scan.
+	deadline := time.Now().Add(10 * time.Second)
+	for queryInt(t, st, `SELECT COUNT(*) FROM sessions`) < 2 && time.Now().Before(deadline) {
+		time.Sleep(50 * time.Millisecond)
+	}
+	if !ix.Watching() {
+		t.Skip("fsnotify unavailable on this platform")
+	}
+
+	// New project directory + transcript, created after the watches were set.
+	newProj := filepath.Join(root, "projects", "C--fixture-gamma")
+	if err := os.MkdirAll(newProj, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	const gamma = "cccccccc-0000-4000-8000-000000000003"
+	line := `{"parentUuid":null,"isSidechain":false,"type":"user","message":{"role":"user","content":"gamma"},"uuid":"g1","timestamp":"2026-09-03T08:00:00.000Z","cwd":"C:\\fixture\\gamma","sessionId":"` + gamma + `","version":"2.1.274"}` + "\n"
+	if err := os.WriteFile(filepath.Join(newProj, gamma+".jsonl"), []byte(line), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	deadline = time.Now().Add(10 * time.Second)
+	for queryInt(t, st, `SELECT COUNT(*) FROM sessions WHERE id = ?`, gamma) == 0 && time.Now().Before(deadline) {
+		time.Sleep(100 * time.Millisecond)
+	}
+	if n := queryInt(t, st, `SELECT COUNT(*) FROM sessions WHERE id = ?`, gamma); n != 1 {
+		t.Fatalf("watcher did not index the new session within 10s")
+	}
+
+	// Appending to that file (now inside a directory watched after creation).
+	f, _ := os.OpenFile(filepath.Join(newProj, gamma+".jsonl"), os.O_APPEND|os.O_WRONLY, 0)
+	f.WriteString(`{"type":"ai-title","aiTitle":"Gamma live","sessionId":"` + gamma + `"}` + "\n")
+	f.Close()
+	deadline = time.Now().Add(10 * time.Second)
+	for queryStr(t, st, `SELECT COALESCE(title,'') FROM sessions WHERE id = ?`, gamma) != "Gamma live" && time.Now().Before(deadline) {
+		time.Sleep(100 * time.Millisecond)
+	}
+	if got := queryStr(t, st, `SELECT COALESCE(title,'') FROM sessions WHERE id = ?`, gamma); got != "Gamma live" {
+		t.Errorf("append not picked up by watcher: title=%q", got)
+	}
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Error("Run did not stop after cancel")
+	}
+}
+
 // TestStatusDoesNotBlockDuringScan: /healthz must answer while a scan runs.
 func TestStatusDoesNotBlockDuringScan(t *testing.T) {
 	root := copyFixture(t)

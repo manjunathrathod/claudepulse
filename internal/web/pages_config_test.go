@@ -74,6 +74,7 @@ func TestSystemPage(t *testing.T) {
 		"Index tables", "history_entries", "Disk usage", "projects",
 		"alpha-1", // live session
 		"Configuration", "Scan interval",
+		`id="account"`, "fixture.user@example.com", "stripe_subscription", "Subscribed since",
 	} {
 		if !strings.Contains(html, want) {
 			t.Errorf("system missing %q", want)

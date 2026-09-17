@@ -53,6 +53,15 @@
       </a>
     </nav>
     <div class="sidebar-foot">
+      {{with .Account}}
+      <a class="account" href="/system#account" title="Signed-in Claude account and plan">
+        <span class="avatar" aria-hidden="true">{{initial .DisplayName}}</span>
+        <span class="account-body">
+          <span class="account-name">{{.DisplayName}}</span>
+          <span class="account-meta">{{if .OrganizationType}}<span class="chip plan">{{planLabel .OrganizationType}}</span>{{end}}{{with .Usage}}{{range .Windows}}{{if and (eq .Key "five_hour") (not .Stale)}}<span class="account-usage" title="{{.Label}}: {{.Utilization}}% used, resets {{ago .ResetsAt}}">{{.Utilization}}% of 5h</span>{{end}}{{end}}{{end}}</span>
+        </span>
+      </a>
+      {{end}}
       <div class="foot-row" title="Installed Claude Code CLI version"><span class="foot-k">Claude Code</span><span class="foot-v mono">{{if .CLIVersion}}v{{.CLIVersion}}{{else}}—{{end}}</span></div>
       <div class="foot-row" title="Directory being indexed"><span class="foot-k">Watching</span><span class="foot-v mono" title="{{.ClaudeDir}}">{{basename .ClaudeDir}}</span></div>
       <div class="foot-row" title="Local address this dashboard is served on"><span class="foot-k">Listening</span><span class="foot-v mono" title="{{.Addr}}">{{.Addr}}</span></div>

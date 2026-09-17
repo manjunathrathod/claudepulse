@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -37,6 +38,11 @@ func run() error {
 
 	if info, err := os.Stat(cfg.ClaudeDir); err != nil || !info.IsDir() {
 		return fmt.Errorf("claude dir %q is not a directory (use -claude-dir)", cfg.ClaudeDir)
+	}
+	if inside, err := pathInside(cfg.DBPath, cfg.ClaudeDir); err != nil {
+		return err
+	} else if inside {
+		return fmt.Errorf("database %q must not live inside the watched directory %q (it would trigger endless rescans)", cfg.DBPath, cfg.ClaudeDir)
 	}
 	if cfg.ResetDB {
 		for _, suffix := range []string{"", "-wal", "-shm"} {
@@ -71,6 +77,23 @@ func run() error {
 	stop()    // a listen failure must also stop the indexer
 	wg.Wait() // let an in-flight transaction roll back before the DB closes
 	return err
+}
+
+// pathInside reports whether p is dir or a descendant of it.
+func pathInside(p, dir string) (bool, error) {
+	ap, err := filepath.Abs(p)
+	if err != nil {
+		return false, err
+	}
+	ad, err := filepath.Abs(dir)
+	if err != nil {
+		return false, err
+	}
+	rel, err := filepath.Rel(ad, ap)
+	if err != nil {
+		return false, nil // different volumes
+	}
+	return rel == "." || !strings.HasPrefix(rel, ".."), nil
 }
 
 func parseLevel(s string) slog.Level {

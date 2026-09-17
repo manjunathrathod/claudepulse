@@ -1,7 +1,6 @@
 # claude-monitor — Implementation Plan
 
-Status: **Phases 1–4 complete (index, JSON API, all dashboard pages).
-Phase 5 (fsnotify live updates, incremental resume already done) next.**
+Status: **Phases 1–5 complete. Phase 6 (polish, light theme check, README) remains.**
 Last updated 2026-09-17.
 
 ### UI design system (Phase 2, fixed)
@@ -195,7 +194,7 @@ JSON API (`/api/v1/...`) mirrors the above for charts/htmx partials: `summary`,
 | **2** Dashboard + projects | `base.html`, `/`, `/projects`, `/projects/{id}`, Chart.js daily chart, CSS meters, htmx live/index partials | ✅ 2026-09-17 — verified via headless-Edge screenshots against real data |
 | **3** Sessions | `/sessions` (project/model/range/title filters, pagination), `/sessions/{id}` (hero stats, adaptive-bucket timeline, subagents, models, tools), `/api/v1/sessions[/{id}]` | ✅ 2026-09-17 — 506-message session renders in ~30 ms |
 | **4** Settings / skills / plugins / plans / history / system pages | `/settings` (user + per-project, redacted), `/skills` (skills, marketplaces, installed/synced plugins), `/plans` (plans + searchable prompt history), `/system`; hover help on every component | ✅ 2026-09-17 — every top-level `~/.claude` item is represented |
-| **5** Live | fsnotify watcher, incremental resume, live-sessions widget polling via htmx | Start a new Claude session → appears on dashboard within 10 s without restart |
+| **5** Live + account | fsnotify watcher (debounced, re-synced after every scan), account name + plan + rate-limit usage from `~/.claude.json` in sidebar, dashboard and System | ✅ 2026-09-17 — new session indexed ~3 s after its file appears; pruned ~3 s after deletion |
 | **6** Polish | light theme, empty states, `-reset-db`, README, `reviewer` pass | Reviewer checklist clean |
 
 Each phase: implement with the matching agent (`go-backend`, `db-engineer`,

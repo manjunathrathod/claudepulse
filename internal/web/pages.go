@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"sort"
@@ -22,6 +23,7 @@ type layout struct {
 	ClaudeDir  string
 	Index      indexer.Stats
 	Addr       string // listen address shown in the sidebar
+	Account    *claudedir.Account
 	Days       int
 	Page       any
 }
@@ -37,6 +39,7 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, name string, sta
 	l.ClaudeDir, _ = s.st.GetMeta(ctx, "claude_dir")
 	l.Index = s.ix.Status(ctx)
 	l.Addr = s.addr
+	l.Account = s.account(ctx)
 	var buf bytes.Buffer
 	if err := t.ExecuteTemplate(&buf, "base.html", l); err != nil {
 		s.failPage(w, r, err)
@@ -68,6 +71,20 @@ func (s *Server) failPage(w http.ResponseWriter, r *http.Request, err error) {
 
 type errorPage struct {
 	Code, Message, Path string
+}
+
+// account returns the signed-in account profile captured by the indexer, or
+// nil when ~/.claude.json is absent or has no account block.
+func (s *Server) account(ctx context.Context) *claudedir.Account {
+	raw, _ := s.st.GetMeta(ctx, "account")
+	if raw == "" {
+		return nil
+	}
+	var a claudedir.Account
+	if json.Unmarshal([]byte(raw), &a) != nil || (a.Email == "" && a.OrganizationName == "") {
+		return nil
+	}
+	return &a
 }
 
 func (s *Server) renderPartial(w http.ResponseWriter, name string, data any) {

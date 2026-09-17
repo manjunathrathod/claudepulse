@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"claude-monitor/internal/claudedir"
 	webassets "claude-monitor/web"
 )
 
@@ -145,6 +146,8 @@ var funcMap = template.FuncMap{
 	"int64":       func(i int) int64 { return int64(i) },
 	"add":         func(a, b int) int { return a + b },
 	"asset":       assetURL,
+	"planLabel":   claudedir.PlanLabel,
+	"initial":     initial,
 	"truncate":    truncate,
 }
 
@@ -227,25 +230,35 @@ func parseTS(v any) (time.Time, bool) {
 	}
 }
 
-// ago renders a stored timestamp as a relative phrase.
+// ago renders a stored timestamp as a relative phrase; future times read
+// "in 2h", past ones "2h ago".
 func ago(s any) string {
 	t, ok := parseTS(s)
 	if !ok {
 		return "—"
 	}
 	d := time.Since(t)
+	future := d < 0
+	if future {
+		d = -d
+	}
+	var rel string
 	switch {
 	case d < time.Minute:
 		return "just now"
 	case d < time.Hour:
-		return fmt.Sprintf("%dm ago", int(d.Minutes()))
+		rel = fmt.Sprintf("%dm", int(d.Minutes()))
 	case d < 24*time.Hour:
-		return fmt.Sprintf("%dh ago", int(d.Hours()))
+		rel = fmt.Sprintf("%dh", int(d.Hours()))
 	case d < 30*24*time.Hour:
-		return fmt.Sprintf("%dd ago", int(d.Hours()/24))
+		rel = fmt.Sprintf("%dd", int(d.Hours()/24))
 	default:
 		return t.Local().Format("2 Jan 2006")
 	}
+	if future {
+		return "in " + rel
+	}
+	return rel + " ago"
 }
 
 func dateOnly(s any) string {
@@ -311,4 +324,12 @@ func pctNum(part, whole int64) int {
 		return 0
 	}
 	return int(math.Round(float64(part) / float64(whole) * 100))
+}
+
+// initial returns the first letter of s, upper-cased, for avatar badges.
+func initial(s string) string {
+	for _, r := range s {
+		return strings.ToUpper(string(r))
+	}
+	return "?"
 }

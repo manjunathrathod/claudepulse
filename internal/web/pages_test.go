@@ -50,6 +50,7 @@ func TestDashboardPage(t *testing.T) {
 		`"label":"Sonnet 5","color":"#d55181"`,
 		"alpha-1", // live session name
 		`class="status-pill`,
+		`class="account-name">fixture.user<`, `class="chip plan">Pro</span>`, "Plan usage", "5-hour window", "29% · resets", "reset · was 4%",
 		`/projects/`,
 	} {
 		if !strings.Contains(html, want) {
@@ -142,6 +143,9 @@ func TestFormatting(t *testing.T) {
 	}
 	if basenameAny(`C:\Users\me\Desktop\App`) != "App" || basenameAny("/home/me/app/") != "app" || basenameAny("E:\\") != "E:" {
 		t.Errorf("basenameAny: %q %q %q", basenameAny(`C:\Users\me\Desktop\App`), basenameAny("/home/me/app/"), basenameAny("E:\\"))
+	}
+	if ago(time.Now().Add(-3*time.Hour).UTC().Format(time.RFC3339Nano)) != "3h ago" || ago(time.Now().Add(2*time.Hour+time.Minute)) != "in 2h" || ago(time.Now().Add(-10*time.Second)) != "just now" {
+		t.Errorf("ago: %q %q", ago(time.Now().Add(-3*time.Hour)), ago(time.Now().Add(2*time.Hour+time.Minute)))
 	}
 	if humanBytes(1536) != "1.5 KB" || humanBytes(157*1024*1024) != "157.0 MB" {
 		t.Errorf("humanBytes: %s %s", humanBytes(1536), humanBytes(157*1024*1024))

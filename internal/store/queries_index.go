@@ -286,6 +286,12 @@ func (s *Store) SetMeta(ctx context.Context, key, value string) error {
 	return err
 }
 
+// DeleteMeta removes a key (no-op if absent).
+func (s *Store) DeleteMeta(ctx context.Context, key string) error {
+	_, err := s.db.ExecContext(ctx, `DELETE FROM meta WHERE key = ?`, key)
+	return err
+}
+
 // GetMeta returns the value for key or "".
 func (s *Store) GetMeta(ctx context.Context, key string) (string, error) {
 	var v string

@@ -1,0 +1,29 @@
+{
+  "numStartups": 12,
+  "installMethod": "native",
+  "firstStartTime": "2026-08-12T19:27:16.391Z",
+  "userID": "fixture-user-id-not-secret",
+  "oauthAccount": {
+    "accountUuid": "00000000-0000-4000-8000-00000000abcd",
+    "emailAddress": "fixture.user@example.com",
+    "organizationUuid": "00000000-0000-4000-8000-00000000ef01",
+    "hasExtraUsageEnabled": false,
+    "billingType": "stripe_subscription",
+    "accountCreatedAt": "2026-08-12T19:32:53.641727Z",
+    "subscriptionCreatedAt": "2026-08-12T19:34:35.768254Z",
+    "organizationRole": "admin",
+    "organizationName": "fixture.user@example.com's Organization",
+    "organizationType": "claude_pro"
+  },
+  "cachedUsageUtilization": {
+    "fetchedAtMs": 1788256800000,
+    "accountUuid": "00000000-0000-4000-8000-00000000abcd",
+    "utilization": {
+      "five_hour": {"utilization": 29.4, "resets_at": "2099-01-01T00:00:00+00:00", "limit_dollars": null, "locked_reason": null},
+      "seven_day": {"utilization": 4, "resets_at": "2020-01-01T00:00:00+00:00", "limit_dollars": null, "locked_reason": null},
+      "seven_day_opus": null,
+      "experimental_thing": [1, 2, 3]
+    }
+  },
+  "projects": {}
+}

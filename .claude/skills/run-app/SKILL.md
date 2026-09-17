@@ -21,7 +21,7 @@ Flags / env (flag wins over env, env wins over default):
 | `-addr` | `CM_ADDR` | `127.0.0.1:48273` | Listen address. Always loopback — never `0.0.0.0`. |
 | `-claude-dir` | `CM_CLAUDE_DIR` | `$HOME/.claude` (`%USERPROFILE%\.claude` on Windows) | Directory to monitor |
 | `-db` | `CM_DB` | `./data/claude-monitor.db` | SQLite file (created on first run) |
-| `-scan-interval` | `CM_SCAN_INTERVAL` | `30s` | Periodic full-rescan cadence (fsnotify handles the fast path) |
+| `-scan-interval` | `CM_SCAN_INTERVAL` | `30s` | Safety-net rescan cadence; fsnotify triggers scans within ~1 s of a change |
 | `-log-level` | `CM_LOG_LEVEL` | `info` | `debug` prints every file indexed |
 
 Port **48273** was chosen because it is unassigned by IANA and not used by any

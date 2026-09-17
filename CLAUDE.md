@@ -9,9 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 sessions, settings, skills, plugins, plans, history, system info) on
 **http://127.0.0.1:48273**. Read-only with respect to `~/.claude`; loopback only.
 
-**Current status: Phases 1–4 done — all pages exist (overview, projects,
-sessions, settings, skills & plugins, plans & history, system). Phase 5
-(fsnotify live updates) and Phase 6 (polish, README) remain.** `docs/PLAN.md` is the source of
+**Current status: Phases 1–5 done — all pages, fsnotify live updates, account
++ plan usage. Phase 6 (polish, light theme check, README) remains.** `docs/PLAN.md` is the source of
 truth for architecture, data model, routes, the UI design system and phased
 delivery — build phase by phase from it; do not invent a different layout.
 `docs/PLAN.md` §7 tracks which phases are complete.
@@ -63,6 +62,10 @@ Rules that are easy to get wrong (each has a reason in the skills below):
 - **Never read `~/.claude/.credentials.json` or `~/.claude/sessions/*.key`** —
   enforced in `.claude/settings.json` deny rules and must also be enforced in
   the indexer's walk.
+- `~/.claude.json` (sibling of the `.claude` dir, outside it) is the ONLY file
+  read from outside `-claude-dir`; `claudedir.ReadAccount` decodes just the
+  account profile and cached usage fields. It holds no tokens, but never store
+  or render it raw.
 - Real project path comes from transcript `cwd`, not from decoding the
   `projects/<encoded>` dir name (encoding is lossy).
 - Pure-Go SQLite only (`modernc.org/sqlite`); never `mattn/go-sqlite3`.

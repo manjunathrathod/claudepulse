@@ -41,6 +41,18 @@ Security rule: the indexer must have an explicit **deny-list** (`.credentials.js
 `sessions/*.key`) and must never render raw file contents of anything outside the
 allow-listed JSON/JSONL/MD files above.
 
+## `~/.claude.json` (sibling, not inside the directory)
+
+Claude Code's root config. Safe, useful fields (decoded by `claudedir.ReadAccount`):
+`oauthAccount.{emailAddress, organizationName, organizationType (claude_pro|claude_max|…),
+billingType, organizationRole, accountCreatedAt, subscriptionCreatedAt, hasExtraUsageEnabled}`,
+`numStartups`, `installMethod`, `firstStartTime`, and
+`cachedUsageUtilization.{fetchedAtMs, utilization.{five_hour,seven_day,…}.{utilization%, resets_at}}`
+— the plan's rate-limit windows as last checked by Claude Code (can be stale: compare
+`resets_at` with now). Values under `utilization` are heterogeneous (objects, null,
+arrays) — decode per key. No tokens live here, but `projects.*` holds per-project
+allowedTools/mcpServers and `userID` — do not store the file raw.
+
 ## `projects/<encoded-cwd>/`
 
 Directory name is the project cwd with every `\`, `/`, `:` and space replaced by
