@@ -257,7 +257,8 @@ func (s *Store) RebuildRollups(ctx context.Context) error {
 			`DELETE FROM session_usage`,
 			`INSERT INTO session_usage(session_id, models, input_tokens, output_tokens, cache_read_tokens, cache_create_tokens, duration_ms)
 			 SELECT s.id,
-			        COALESCE((SELECT GROUP_CONCAT(DISTINCT model) FROM messages WHERE session_id = s.id AND model IS NOT NULL), ''),
+			        COALESCE((SELECT GROUP_CONCAT(DISTINCT model) FROM messages
+			                  WHERE session_id = s.id AND model IS NOT NULL AND output_tokens > 0), ''),
 			        COALESCE(SUM(m.input_tokens), 0), COALESCE(SUM(m.output_tokens), 0),
 			        COALESCE(SUM(m.cache_read_tokens), 0), COALESCE(SUM(m.cache_create_tokens), 0),
 			        CASE WHEN s.started_at IS NULL OR s.ended_at IS NULL THEN 0

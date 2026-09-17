@@ -46,7 +46,7 @@
       <tbody>
       {{range $p.Recent}}
       <tr>
-        <td class="cell-title"><span title="{{.ID}}">{{if .Title}}{{truncate .Title 56}}{{else}}<span class="dim">untitled</span>{{end}}</span>
+        <td class="cell-title"><a class="link strong" href="/sessions/{{.ID}}" title="{{.ID}}">{{if .Title}}{{truncate .Title 56}}{{else}}<span class="dim">untitled</span>{{end}}</a>
           {{range split .Models ","}}{{if .}}<span class="swatch sm" style="--c:{{seriesColor .}}" title="{{modelLabel .}}"></span>{{end}}{{end}}</td>
         <td><a class="link" href="/projects/{{.ProjectID}}" title="{{.ProjectPath}}">{{if .ProjectPath}}{{basename .ProjectPath}}{{else}}{{truncate .ProjectName 28}}{{end}}</a></td>
         <td class="num mono">{{.Prompts}}</td>

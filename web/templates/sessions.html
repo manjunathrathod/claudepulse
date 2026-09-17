@@ -1,0 +1,85 @@
+{{define "content"}}
+{{$p := .Page}}
+{{$f := $p.Filter}}
+<section class="card filters">
+  <form method="get" action="/sessions" class="filter-row">
+    <label class="field">
+      <span class="field-label">Project</span>
+      <select name="project" class="input">
+        <option value="">All projects</option>
+        {{range $p.Projects}}<option value="{{.ID}}"{{if eq .ID $f.Project}} selected{{end}}>{{basename .Name}} ({{.Sessions}})</option>{{end}}
+      </select>
+    </label>
+    <label class="field">
+      <span class="field-label">Model</span>
+      <select name="model" class="input">
+        <option value="">All models</option>
+        {{range $p.Models}}<option value="{{.}}"{{if eq . $f.Model}} selected{{end}}>{{modelLabel .}}</option>{{end}}
+      </select>
+    </label>
+    <div class="field">
+      <span class="field-label">Started</span>
+      <div class="seg">
+        {{range $r := split "7,30,90,all" ","}}
+        <label class="seg-item{{if eq $r $f.Range}} is-active{{end}}"><input type="radio" name="range" value="{{$r}}"{{if eq $r $f.Range}} checked{{end}} class="sr-only">{{if eq $r "all"}}All{{else}}{{$r}}d{{end}}</label>
+        {{end}}
+      </div>
+    </div>
+    <label class="field grow">
+      <span class="field-label">Title contains</span>
+      <input class="input" type="search" name="q" value="{{$f.Q}}" placeholder="e.g. refactor" maxlength="80">
+    </label>
+    <div class="field">
+      <span class="field-label">&nbsp;</span>
+      <div class="btn-row"><button class="btn" type="submit">Apply</button><a class="btn-ghost" href="/sessions">Reset</a></div>
+    </div>
+  </form>
+</section>
+
+<section class="kpi-grid kpi-grid-4" aria-label="Filtered totals">
+  <div class="card kpi kpi-blue"><div class="kpi-label">Sessions</div><div class="kpi-value">{{comma $p.Total}}</div><div class="kpi-hint">{{if lt (int64 (len $p.Sessions)) $p.Total}}showing {{len $p.Sessions}} on this page{{else}}matching filters{{end}}</div></div>
+  <div class="card kpi"><div class="kpi-label">Output tokens</div><div class="kpi-value" title="{{comma $p.TotalOut}}">{{compact $p.TotalOut}}</div><div class="kpi-hint">on this page</div></div>
+  <div class="card kpi"><div class="kpi-label">Tool calls</div><div class="kpi-value">{{comma $p.TotalTools}}</div><div class="kpi-hint">on this page</div></div>
+  <div class="card kpi kpi-purple"><div class="kpi-label">Time</div><div class="kpi-value">{{duration $p.Duration}}</div><div class="kpi-hint">on this page</div></div>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <div><h2 class="card-title">Sessions</h2><p class="card-sub">Newest first · page {{$p.Page}} of {{$p.Last}}</p></div>
+    {{if gt $p.Last 1}}
+    <div class="seg">
+      {{if $p.PrevURL}}<a class="seg-item" href="{{$p.PrevURL}}">‹ Prev</a>{{else}}<span class="seg-item is-off">‹ Prev</span>{{end}}
+      {{if $p.NextURL}}<a class="seg-item" href="{{$p.NextURL}}">Next ›</a>{{else}}<span class="seg-item is-off">Next ›</span>{{end}}
+    </div>
+    {{end}}
+  </div>
+  {{if $p.Sessions}}
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Session</th><th>Project</th><th class="num">Prompts</th><th class="num">Replies</th><th class="num">Tools</th><th class="num">Agents</th><th class="num">Output</th><th class="num">Duration</th><th class="num">Started</th></tr></thead>
+    <tbody>
+    {{range $p.Sessions}}
+    <tr>
+      <td class="cell-title">
+        <a class="link strong" href="/sessions/{{.ID}}">{{if .Title}}{{truncate .Title 64}}{{else}}<span class="dim">untitled</span>{{end}}</a>
+        {{range split .Models ","}}{{if .}}<span class="swatch sm" style="--c:{{seriesColor .}}" title="{{modelLabel .}}"></span>{{end}}{{end}}
+        <div class="dim mono sm">{{truncate .ID 8}}{{if .CLIVersion}} · v{{.CLIVersion}}{{end}}</div>
+      </td>
+      <td><a class="link" href="/projects/{{.ProjectID}}" title="{{.ProjectPath}}">{{if .ProjectPath}}{{basename .ProjectPath}}{{else}}{{truncate .ProjectName 28}}{{end}}</a></td>
+      <td class="num mono">{{.Prompts}}</td>
+      <td class="num mono">{{.AssistantMsgs}}</td>
+      <td class="num mono">{{.ToolCalls}}</td>
+      <td class="num mono">{{if .Subagents}}{{.Subagents}}{{else}}<span class="dim">–</span>{{end}}</td>
+      <td class="num mono" title="{{comma .OutputTokens}}">{{compact .OutputTokens}}</td>
+      <td class="num mono">{{duration .DurationMS}}</td>
+      <td class="num dim" title="{{datetime .StartedAt}}">{{ago .StartedAt}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+  {{else}}
+  <div class="empty tall">No sessions match these filters.</div>
+  {{end}}
+</section>
+{{end}}

@@ -1,0 +1,112 @@
+{{define "content"}}
+{{$p := .Page}}
+{{$s := $p.Session}}
+<div class="crumbs"><a class="link" href="/sessions">Sessions</a><span class="crumb-sep">/</span><a class="link" href="/projects/{{$s.ProjectID}}">{{if $s.ProjectPath}}{{basename $s.ProjectPath}}{{else}}{{truncate $s.ProjectName 28}}{{end}}</a><span class="crumb-sep">/</span><span class="mono">{{truncate $s.ID 8}}</span></div>
+
+<section class="card hero">
+  <div class="hero-main">
+    <div class="chips">
+      {{range split $s.Models ","}}{{if .}}<span class="chip"><span class="swatch sm nomargin" style="--c:{{seriesColor .}}"></span>{{modelLabel .}}</span>{{end}}{{end}}
+      {{if $s.CLIVersion}}<span class="chip mono">v{{$s.CLIVersion}}</span>{{end}}
+      {{if $s.Entrypoint}}<span class="chip">{{$s.Entrypoint}}</span>{{end}}
+      {{if $s.Subagents}}<span class="chip purple">{{$s.Subagents}} subagent{{if ne $s.Subagents 1}}s{{end}}</span>{{end}}
+    </div>
+    <dl class="kv mt-sm">
+      <div><dt>Started</dt><dd>{{datetime $s.StartedAt}} <span class="dim">· {{ago $s.StartedAt}}</span></dd></div>
+      <div><dt>Ended</dt><dd>{{datetime $s.EndedAt}}</dd></div>
+      <div><dt>Working directory</dt><dd class="mono" title="{{$s.CWD}}">{{truncate $s.CWD 60}}</dd></div>
+      <div><dt>Session id</dt><dd class="mono">{{$s.ID}}</dd></div>
+      <div><dt>Transcript</dt><dd class="mono" title="{{$s.SourcePath}}">{{basename $s.SourcePath}}</dd></div>
+    </dl>
+  </div>
+  <dl class="hero-stats">
+    <div><dt>Duration</dt><dd>{{duration $s.DurationMS}}</dd></div>
+    <div><dt>Prompts</dt><dd>{{comma $s.Prompts}}</dd></div>
+    <div><dt>Replies</dt><dd>{{comma $s.AssistantMsgs}}</dd></div>
+    <div><dt>Tool calls</dt><dd>{{comma $s.ToolCalls}}</dd></div>
+    <div><dt>Output tokens</dt><dd title="{{comma $s.OutputTokens}}">{{compact $s.OutputTokens}}</dd></div>
+    <div><dt>Cache read</dt><dd title="{{comma $s.CacheRead}}">{{compact $s.CacheRead}}</dd></div>
+    <div><dt>Cache created</dt><dd title="{{comma $s.CacheCreate}}">{{compact $s.CacheCreate}}</dd></div>
+    <div><dt>Thinking</dt><dd title="{{comma $s.Thinking}}">{{compact $s.Thinking}}</dd></div>
+    <div><dt>Input</dt><dd title="{{comma $s.InputTokens}}">{{compact $s.InputTokens}}</dd></div>
+  </dl>
+</section>
+
+<section class="grid grid-2-1">
+  <div class="stack">
+    <div class="card">
+      <div class="card-head">
+        <div><h2 class="card-title">Timeline</h2><p class="card-sub">Output tokens per {{if ge $p.Timeline.BucketMinutes 1440}}day{{else}}{{$p.Timeline.BucketMinutes}} min{{end}} · {{$p.Events}} messages</p></div>
+      </div>
+      {{if $p.Timeline.Buckets}}
+      <div class="chart-wrap"><canvas id="timeline-chart" role="img" aria-label="Output tokens over the session"></canvas></div>
+      <script type="application/json" id="timeline-data">{{json $p.Timeline}}</script>
+      {{else}}
+      <div class="empty tall">No timestamped messages.</div>
+      {{end}}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div><h2 class="card-title">Subagents</h2><p class="card-sub">Spawned by this session</p></div></div>
+      {{if $p.Subagents}}
+      <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Agent</th><th>Task</th><th class="num">Depth</th><th class="num">Msgs</th><th class="num">Tools</th><th class="num">Output</th><th class="num">Started</th></tr></thead>
+        <tbody>
+        {{range $p.Subagents}}
+        <tr>
+          <td><span class="chip purple">{{if .AgentType}}{{.AgentType}}{{else}}agent{{end}}</span><div class="dim mono sm">{{.ID}}</div></td>
+          <td class="cell-title">{{if .Description}}{{truncate .Description 72}}{{else}}<span class="dim">—</span>{{end}}</td>
+          <td class="num mono">{{.SpawnDepth}}</td>
+          <td class="num mono">{{.Messages}}</td>
+          <td class="num mono">{{.ToolCalls}}</td>
+          <td class="num mono" title="{{comma .OutputTokens}}">{{compact .OutputTokens}}</td>
+          <td class="num dim" title="{{datetime .StartedAt}}">{{if .StartedAt}}{{ago .StartedAt}}{{else}}—{{end}}</td>
+        </tr>
+        {{end}}
+        </tbody>
+      </table>
+      </div>
+      {{else}}
+      <div class="empty">No subagents were spawned.</div>
+      {{end}}
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><div><h2 class="card-title">Models</h2><p class="card-sub">Share of output tokens</p></div></div>
+      <ul class="meter-list">
+        {{range $p.Models}}
+        <li class="meter">
+          <div class="meter-row">
+            <span class="swatch" style="--c:{{.Color}}" aria-hidden="true"></span>
+            <span class="meter-name">{{.Label}}</span>
+            <span class="meter-val mono" title="{{comma .Output}} tokens · {{comma .Messages}} messages">{{compact .Output}} · {{.Share}}</span>
+          </div>
+          <div class="meter-track"><div class="meter-fill" style="width:{{.Width}}%;--c:{{.Color}}"></div></div>
+        </li>
+        {{else}}
+        <li class="empty">No model usage.</li>
+        {{end}}
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><h2 class="card-title">Tools</h2><p class="card-sub">Calls in this session</p></div></div>
+      <ul class="meter-list compact">
+        {{range $p.Tools}}
+        <li class="meter">
+          <div class="meter-row"><span class="meter-name mono">{{.Name}}</span><span class="meter-val mono">{{comma .Count}}</span></div>
+          <div class="meter-track"><div class="meter-fill accent" style="width:{{.Width}}%"></div></div>
+        </li>
+        {{else}}
+        <li class="empty">No tool calls.</li>
+        {{end}}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<script src="{{asset "vendor/chart.umd.min.js"}}" defer></script>
+<script src="{{asset "app.js"}}" defer></script>
+{{end}}

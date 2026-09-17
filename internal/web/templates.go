@@ -143,6 +143,7 @@ var funcMap = template.FuncMap{
 	"bytes":       humanBytes,
 	"split":       strings.Split,
 	"int64":       func(i int) int64 { return int64(i) },
+	"add":         func(a, b int) int { return a + b },
 	"asset":       assetURL,
 	"truncate":    truncate,
 }

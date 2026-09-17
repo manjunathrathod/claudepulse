@@ -1,7 +1,8 @@
 # claude-monitor — Implementation Plan
 
-Status: **Phases 1–2 complete (core index, JSON API, dashboard + projects UI).
-Phase 3 (sessions list + detail) next.** Last updated 2026-09-17.
+Status: **Phases 1–3 complete (index, JSON API, dashboard, projects, sessions).
+Phase 4 (settings / skills / plugins / plans / history / system pages) next.**
+Last updated 2026-09-17.
 
 ### UI design system (Phase 2, fixed)
 
@@ -189,7 +190,7 @@ JSON API (`/api/v1/...`) mirrors the above for charts/htmx partials: `summary`,
 | **0** | Repo init, agents, skills, plan | ✅ 2026-09-17 |
 | **1** Core index | `config`, `claudedir` decoders, `jsonl` reader, `store` + migrations, `indexer` full + incremental scan, `/healthz`, `/api/v1/{summary,daily,live,system}` | ✅ 2026-09-17 — golden-number tests on fixture; real `~/.claude` (157 MB, 50 files) indexes in 1.5 s |
 | **2** Dashboard + projects | `base.html`, `/`, `/projects`, `/projects/{id}`, Chart.js daily chart, CSS meters, htmx live/index partials | ✅ 2026-09-17 — verified via headless-Edge screenshots against real data |
-| **3** Sessions | `/sessions`, `/sessions/{id}`, tool-call & subagent breakdown | Longest session (697 msgs) page loads < 200 ms |
+| **3** Sessions | `/sessions` (project/model/range/title filters, pagination), `/sessions/{id}` (hero stats, adaptive-bucket timeline, subagents, models, tools), `/api/v1/sessions[/{id}]` | ✅ 2026-09-17 — 506-message session renders in ~30 ms |
 | **4** Settings / skills / plugins / plans / history / system pages | All remaining routes | Every top-level `~/.claude` item is represented somewhere |
 | **5** Live | fsnotify watcher, incremental resume, live-sessions widget polling via htmx | Start a new Claude session → appears on dashboard within 10 s without restart |
 | **6** Polish | light theme, empty states, `-reset-db`, README, `reviewer` pass | Reviewer checklist clean |

@@ -193,34 +193,8 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 			p.HoursMax = h
 		}
 	}
-	var totalOut int64
-	for _, m := range models {
-		totalOut += m.OutputTokens
-	}
-	for _, m := range models {
-		if m.OutputTokens == 0 {
-			continue // e.g. <synthetic> internal messages carry no usage
-		}
-		ms := modelShare{Model: m.Model, Label: modelLabel(m.Model), Color: seriesColor(m.Model),
-			Output: m.OutputTokens, Messages: m.Messages, Share: pct(m.OutputTokens, totalOut)}
-		if totalOut > 0 {
-			ms.Width = int(float64(m.OutputTokens) / float64(totalOut) * 100)
-		}
-		p.Models = append(p.Models, ms)
-	}
-	var maxTool int64
-	for _, t := range tools {
-		if t.Count > maxTool {
-			maxTool = t.Count
-		}
-	}
-	for _, t := range tools {
-		tb := toolBar{Name: t.Name, Count: t.Count}
-		if maxTool > 0 {
-			tb.Width = int(float64(t.Count) / float64(maxTool) * 100)
-		}
-		p.Tools = append(p.Tools, tb)
-	}
+	p.Models = shareModels(models)
+	p.Tools = barTools(tools)
 	for _, d := range dirs {
 		p.DirsTotal += d.Bytes
 	}
@@ -389,35 +363,7 @@ func (s *Server) handleProject(w http.ResponseWriter, r *http.Request) {
 		s.failPage(w, r, err)
 		return
 	}
-	p := projectPage{Project: pr, Sessions: sessions}
-	var totalOut int64
-	for _, m := range models {
-		totalOut += m.OutputTokens
-	}
-	for _, m := range models {
-		if m.OutputTokens == 0 {
-			continue // e.g. <synthetic> internal messages carry no usage
-		}
-		ms := modelShare{Model: m.Model, Label: modelLabel(m.Model), Color: seriesColor(m.Model),
-			Output: m.OutputTokens, Messages: m.Messages, Share: pct(m.OutputTokens, totalOut)}
-		if totalOut > 0 {
-			ms.Width = int(float64(m.OutputTokens) / float64(totalOut) * 100)
-		}
-		p.Models = append(p.Models, ms)
-	}
-	var maxTool int64
-	for _, t := range tools {
-		if t.Count > maxTool {
-			maxTool = t.Count
-		}
-	}
-	for _, t := range tools {
-		tb := toolBar{Name: t.Name, Count: t.Count}
-		if maxTool > 0 {
-			tb.Width = int(float64(t.Count) / float64(maxTool) * 100)
-		}
-		p.Tools = append(p.Tools, tb)
-	}
+	p := projectPage{Project: pr, Sessions: sessions, Models: shareModels(models), Tools: barTools(tools)}
 	for _, se := range sessions {
 		p.Duration += se.DurationMS
 	}

@@ -9,8 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 sessions, settings, skills, plugins, plans, history, system info) on
 **http://127.0.0.1:48273**. Read-only with respect to `~/.claude`; loopback only.
 
-**Current status: Phases 1–2 done (index, JSON API, dashboard + projects
-pages); Phase 3 (sessions list/detail) next.** `docs/PLAN.md` is the source of
+**Current status: Phases 1–3 done (index, JSON API, dashboard, projects,
+sessions pages); Phase 4 (settings / skills / plugins / plans / history /
+system pages) next.** `docs/PLAN.md` is the source of
 truth for architecture, data model, routes, the UI design system and phased
 delivery — build phase by phase from it; do not invent a different layout.
 `docs/PLAN.md` §7 tracks which phases are complete.

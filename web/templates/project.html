@@ -26,7 +26,7 @@
 
 <section class="grid grid-2-1">
   <div class="card">
-    <div class="card-head"><div><h2 class="card-title">Sessions</h2><p class="card-sub">Newest first</p></div></div>
+    <div class="card-head"><div><h2 class="card-title">Sessions</h2><p class="card-sub">Newest first</p></div><a class="btn-ghost" href="/sessions?project={{$pr.ID}}">Filter view</a></div>
     {{if $p.Sessions}}
     <div class="table-wrap">
     <table class="table">
@@ -35,7 +35,7 @@
       {{range $p.Sessions}}
       <tr>
         <td class="cell-title">
-          <span title="{{.ID}}">{{if .Title}}{{truncate .Title 64}}{{else}}<span class="dim">untitled</span>{{end}}</span>
+          <a class="link strong" href="/sessions/{{.ID}}" title="{{.ID}}">{{if .Title}}{{truncate .Title 64}}{{else}}<span class="dim">untitled</span>{{end}}</a>
           {{range split .Models ","}}{{if .}}<span class="swatch sm" style="--c:{{seriesColor .}}" title="{{modelLabel .}}"></span>{{end}}{{end}}
           <div class="dim mono sm">{{truncate .ID 8}}{{if .CLIVersion}} · v{{.CLIVersion}}{{end}}</div>
         </td>
