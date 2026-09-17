@@ -1,0 +1,3 @@
+module claude-monitor
+
+go 1.24.3
