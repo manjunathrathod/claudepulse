@@ -346,3 +346,9 @@ pre.json { margin: 0; padding: 14px 16px; border-radius: var(--radius-sm); backg
 .meter-track.big { height: 10px; margin-top: 10px; }
 .usage-foot { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 10px; font-size: 13px; }
 .usage-activity { margin-top: 6px; }
+/* Native <select> popups ignore the page background; give options explicit colours
+   so the list is legible in both themes (Chromium/Edge honour option colours). */
+select.input { color-scheme: dark; background-color: var(--surface-solid); }
+:root[data-theme="light"] select.input { color-scheme: light; }
+select.input option { background-color: var(--surface-solid); color: var(--text-1); padding: 6px 8px; }
+select.input option:checked { background-color: var(--accent); color: #fff; }
