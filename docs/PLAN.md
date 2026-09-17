@@ -243,3 +243,9 @@ Known limitations carried from the Phase 1 review (revisit in Phase 5/6):
 - Export a session's stats as CSV/JSON from the session page.
 - Optional desktop notification when a rate-limit window crosses 80 %.
 - Linux/macOS service files (the code is portable; only the docs are Windows-first).
+
+## 11. Screenshots
+
+`docs/screenshots/*.png` are captured from the running app with headless Edge
+(`?theme=dark|light` forces a theme). Regenerate after visual changes:
+`msedge --headless=new --disable-gpu --hide-scrollbars --window-size=1440,<h> --virtual-time-budget=4000 --screenshot=<file> http://127.0.0.1:3333/<page>?theme=dark`.

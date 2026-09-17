@@ -12,6 +12,33 @@ Everything stays on your machine: the server binds to loopback only, reads
 `~/.claude` read-only, never touches the credentials file, and redacts settings
 before storing them.
 
+## Screenshots
+
+**Overview** — KPIs, usage limits with live reset countdowns, tokens per day, models, tools, recent sessions, live processes, system status.
+
+![Overview](docs/screenshots/overview.png)
+
+<details>
+<summary><b>Overview — light theme</b></summary>
+
+![Overview, light theme](docs/screenshots/overview-light.png)
+</details>
+
+**Session detail** — timeline, subagents, model share, tool breakdown.
+
+![Session detail](docs/screenshots/session.png)
+
+<details>
+<summary><b>More pages</b> — Sessions, Projects, Settings, Skills & plugins, Plans & history, System</summary>
+
+![Sessions](docs/screenshots/sessions.png)
+![Projects](docs/screenshots/projects.png)
+![Settings](docs/screenshots/settings.png)
+![Skills and plugins](docs/screenshots/skills.png)
+![Plans and history](docs/screenshots/plans.png)
+![System](docs/screenshots/system.png)
+</details>
+
 ## Quick start
 
 Requires Go 1.25+ (`go.mod` pins it; `GOTOOLCHAIN=auto` fetches it) — no CGO,
