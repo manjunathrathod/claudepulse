@@ -50,7 +50,7 @@ func TestDashboardPage(t *testing.T) {
 		`"label":"Sonnet 5","color":"#d55181"`,
 		"alpha-1", // live session name
 		`class="status-pill`,
-		`class="account-name">fixture.user<`, `class="chip plan">Pro</span>`, "Plan usage", "5-hour window", "29% · resets", "reset · was 4%",
+		`class="account-name">fixture.user<`, `class="chip plan">Pro</span>`, "Usage limits", "5-hour window", `class="usage-pct">29<small>%</small>`, "Window reset", "was 4%", `data-reset="2099-01-01T00:00:00&#43;00:00"`, `id="usage-limits"`,
 		`/projects/`,
 	} {
 		if !strings.Contains(html, want) {

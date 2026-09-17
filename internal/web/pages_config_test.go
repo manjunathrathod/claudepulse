@@ -114,3 +114,32 @@ func TestSummarizeSettings(t *testing.T) {
 		t.Error("prettyJSON")
 	}
 }
+
+func TestUsageEndpoints(t *testing.T) {
+	srv := testServer(t)
+	var out struct {
+		Available bool      `json:"available"`
+		Usage     usageView `json:"usage"`
+	}
+	getJSON(t, srv, "/api/v1/usage", &out)
+	if !out.Available || len(out.Usage.Windows) != 2 || out.Usage.Plan != "Pro" {
+		t.Fatalf("usage json = %+v", out)
+	}
+	five, seven := out.Usage.Windows[0], out.Usage.Windows[1]
+	if five.Stale || five.Level != "ok" || five.ResetsIn <= 0 || five.Hours != 5 {
+		t.Errorf("five_hour = %+v", five)
+	}
+	if !seven.Stale || seven.Level != "stale" || seven.ResetsIn >= 0 {
+		t.Errorf("seven_day = %+v", seven)
+	}
+	// Fixture replies are dated 2026-09-01/02; the 5h window (resets 2099) started
+	// 5h before that reset, so nothing falls inside it; the stale 7d window counts
+	// from its 2020 reset and therefore sees all 5 fixture replies.
+	if five.Replies != 0 || seven.Replies != 5 || seven.OutputTokens != 270 {
+		t.Errorf("activity: five=%+v seven=%+v", five, seven)
+	}
+	partial := getHTML(t, srv, "/partials/usage", http.StatusOK)
+	if !strings.Contains(partial, `id="usage-limits"`) || !strings.Contains(partial, "resets in") {
+		t.Errorf("usage partial = %s", partial[:200])
+	}
+}

@@ -10,6 +10,8 @@
   {{end}}
 </section>
 
+{{template "usage.html" .Usage}}
+
 <section class="grid grid-2-1">
   <div class="stack">
   <div class="card">
@@ -112,33 +114,7 @@
     </ul>
   </div>
 
-    {{with $.Account}}
-    <div class="card">
-      <div class="card-head">
-        <div>
-          <h2 class="card-title">Plan usage {{template "help.html" "How much of your subscription's rate-limit windows is used, as last checked by Claude Code (refreshed here every scan interval)"}}</h2>
-          <p class="card-sub">{{planLabel .OrganizationType}}{{if .OrganizationType}} plan · {{end}}{{.DisplayName}}</p>
-        </div>
-        {{with .Usage}}<span class="dim sm" title="{{datetime .FetchedAt}}">checked {{ago .FetchedAt}}</span>{{end}}
-      </div>
-      {{with .Usage}}
-      <ul class="meter-list">
-        {{range .Windows}}
-        <li class="meter">
-          <div class="meter-row">
-            <span class="meter-name">{{.Label}}</span>
-            {{if .Stale}}<span class="meter-val dim" title="The window reset {{ago .ResetsAt}}; Claude Code has not re-checked since">reset · was {{.Utilization}}%</span>{{else}}<span class="meter-val mono" title="resets {{datetime .ResetsAt}}">{{.Utilization}}% · resets {{ago .ResetsAt}}</span>{{end}}
-          </div>
-          <div class="meter-track"><div class="meter-fill{{if .Stale}} stale{{else if ge .Utilization 90}} danger{{else if ge .Utilization 70}} warn{{else}} accent{{end}}" style="width:{{.Utilization}}%"></div></div>
-          {{if .Locked}}<div class="warn-text sm">locked: {{.Locked}}</div>{{end}}
-        </li>
-        {{end}}
-      </ul>
-      {{else}}
-      <div class="empty">No usage snapshot cached yet — Claude Code writes one after it checks your limits.</div>
-      {{end}}
     </div>
-    {{end}}
 
     <div class="card">
       <div class="card-head">

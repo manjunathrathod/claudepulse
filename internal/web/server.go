@@ -48,6 +48,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/v1/live", s.handleLive)
 	s.mux.HandleFunc("GET /api/v1/system", s.handleSystem)
 	s.mux.HandleFunc("GET /api/v1/sessions", s.handleSessionsJSON)
+	s.mux.HandleFunc("GET /api/v1/usage", s.handleUsageJSON)
 	s.mux.HandleFunc("GET /api/v1/sessions/{id}", s.handleSessionJSON)
 
 	s.mux.HandleFunc("GET /{$}", s.handleDashboard)
@@ -61,6 +62,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /system", s.handleSystemPage)
 	s.mux.HandleFunc("GET /partials/live", s.handleLivePartial)
 	s.mux.HandleFunc("GET /partials/index", s.handleIndexPartial)
+	s.mux.HandleFunc("GET /partials/usage", s.handleUsagePartial)
 	s.mux.Handle("GET /static/", http.StripPrefix("/static/", cacheStatic(http.FileServer(staticFS()))))
 	s.mux.HandleFunc("/", s.notFound)
 }

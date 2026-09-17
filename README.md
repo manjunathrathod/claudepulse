@@ -48,7 +48,9 @@ Flags override environment variables, which override defaults.
 ## What you see
 
 - **Overview** — KPIs (output tokens, cache reads, sessions, prompts, tool
-  calls, live processes), tokens per day by model, model share, top tools,
+  calls, live processes), a **Usage limits** strip (% of each rate-limit
+  window used, a live countdown to its reset, and the replies/tokens counted
+  inside the window), tokens per day by model, model share, top tools,
   recent sessions, live Claude Code processes, activity by hour, plan usage,
   and Claude Code's own `stats-cache.json` figures for comparison.
 - **Projects** — every directory you have used Claude Code in, with sessions,
@@ -130,6 +132,7 @@ GET /api/v1/live
 GET /api/v1/system
 GET /api/v1/sessions?project=&model=&range=&q=&limit=&offset=
 GET /api/v1/sessions/{id}
+GET /api/v1/usage
 ```
 
 ## Development

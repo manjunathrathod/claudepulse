@@ -1,0 +1,39 @@
+<section id="usage-limits" class="card usage" hx-get="/partials/usage" hx-trigger="every 30s" hx-swap="outerHTML">
+  <div class="card-head">
+    <div>
+      <h2 class="card-title">Usage limits {{template "help.html" "Your plan's rate-limit windows: % used as last reported by Claude Code, time until each resets, and the activity this dashboard counted inside the window"}}</h2>
+      <p class="card-sub">{{if .}}{{.Plan}} plan · Claude Code last checked {{ago .FetchedAt}}{{else}}Not available yet{{end}}</p>
+    </div>
+    {{if .}}<span class="dim sm">auto-refreshes</span>{{end}}
+  </div>
+  {{if .}}
+  <div class="usage-grid">
+    {{range .Windows}}
+    <div class="usage-win level-{{.Level}}">
+      <div class="usage-top">
+        <span class="usage-label">{{.Label}}</span>
+        {{if .Stale}}
+        <span class="chip">reset</span>
+        {{else}}
+        <span class="usage-pct">{{.Utilization}}<small>%</small></span>
+        {{end}}
+      </div>
+      <div class="meter-track big"><div class="meter-fill {{if .Stale}}stale{{else if eq .Level "danger"}}danger{{else if eq .Level "warn"}}warn{{else}}accent{{end}}" style="width:{{.Utilization}}%"></div></div>
+      <div class="usage-foot">
+        {{if .Stale}}
+        <span class="dim">Window reset {{ago .ResetsAt}} · was {{.Utilization}}% — open Claude Code to refresh</span>
+        {{else}}
+        <span>resets in <strong class="countdown mono" data-reset="{{.ResetsAt}}">{{duration .ResetsIn}}</strong> <span class="dim">· {{datetime .ResetsAt}}</span></span>
+        {{end}}
+        {{if .Locked}}<span class="warn-text">locked: {{.Locked}}</span>{{end}}
+      </div>
+      <div class="usage-activity dim sm" title="Counted from your transcripts, {{if .Stale}}since the reset{{else}}since this window opened{{end}}">
+        Since {{if .Stale}}reset{{else}}window start{{end}}: <span class="mono">{{comma .Replies}}</span> replies · <span class="mono">{{compact .OutputTokens}}</span> output tokens
+      </div>
+    </div>
+    {{end}}
+  </div>
+  {{else}}
+  <div class="empty">Claude Code has not cached a usage snapshot yet. Start a Claude Code session once and this fills in automatically.</div>
+  {{end}}
+</section>

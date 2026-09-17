@@ -24,6 +24,7 @@ type layout struct {
 	Index      indexer.Stats
 	Addr       string // listen address shown in the sidebar
 	Account    *claudedir.Account
+	Usage      *usageView // dashboard only
 	Days       int
 	Page       any
 }
@@ -234,7 +235,9 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 	p.LastCleanup, _ = s.st.GetMeta(ctx, "last_cleanup")
 
-	s.render(w, r, "dashboard", http.StatusOK, layout{Title: "Overview", Active: "dashboard", Days: days, Page: p})
+	l := layout{Title: "Overview", Active: "dashboard", Days: days, Page: p}
+	l.Usage = s.buildUsage(ctx, s.account(ctx))
+	s.render(w, r, "dashboard", http.StatusOK, l)
 }
 
 // buildDaily pivots (date, model) rows into a gap-free stacked series. Series

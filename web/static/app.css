@@ -333,3 +333,16 @@ pre.json { margin: 0; padding: 14px 16px; border-radius: var(--radius-sm); backg
 .meter-fill.warn { --c: var(--warn); }
 .meter-fill.danger { --c: var(--danger); }
 .meter-fill.stale { --c: var(--text-3); opacity: .5; box-shadow: none; }
+
+/* ---- usage limits strip ---- */
+.usage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.usage-win { padding: 14px 16px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border); }
+.usage-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.usage-label { font-weight: 600; }
+.usage-pct { font-size: 28px; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; line-height: 1; }
+.usage-pct small { font-size: 14px; font-weight: 600; color: var(--text-3); margin-left: 1px; }
+.level-warn .usage-pct { color: var(--warn); }
+.level-danger .usage-pct { color: var(--danger); }
+.meter-track.big { height: 10px; margin-top: 10px; }
+.usage-foot { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 10px; font-size: 13px; }
+.usage-activity { margin-top: 6px; }

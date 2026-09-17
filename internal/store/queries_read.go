@@ -173,6 +173,20 @@ type LiveSession struct {
 	Name      string `json:"name"`
 }
 
+// Activity is what happened since a point in time.
+type Activity struct {
+	Replies      int64
+	OutputTokens int64
+}
+
+// ActivitySince counts assistant replies and output tokens from t onwards.
+func (s *Store) ActivitySince(ctx context.Context, t time.Time) (Activity, error) {
+	var a Activity
+	err := s.rdb.QueryRowContext(ctx, `SELECT COUNT(*), COALESCE(SUM(output_tokens), 0) FROM messages
+		WHERE role = 'assistant' AND ts >= ?`, FormatTime(t)).Scan(&a.Replies, &a.OutputTokens)
+	return a, err
+}
+
 // GetLiveSessions lists currently running Claude Code processes.
 func (s *Store) GetLiveSessions(ctx context.Context) ([]LiveSession, error) {
 	rows, err := s.rdb.QueryContext(ctx, `SELECT pid, COALESCE(session_id,''), COALESCE(cwd,''), COALESCE(started_at,''),

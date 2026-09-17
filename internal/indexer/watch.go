@@ -98,7 +98,7 @@ func (ix *Indexer) ignoreEvent(ev fsnotify.Event) bool {
 	if ev.Op == fsnotify.Chmod || ev.Op == 0 {
 		return true
 	}
-	if ix.dir.IsDenied(ev.Name) {
+	if ix.dir.IsDenied(ev.Name) && filepath.Clean(ev.Name) != ix.dir.AccountPath() {
 		return true
 	}
 	base := filepath.Base(ev.Name)
@@ -117,6 +117,7 @@ func (ix *Indexer) syncWatches() {
 	ix.addWatch(ix.dir.SessionsDir())
 	ix.addWatch(ix.dir.PlansDir())
 	ix.addWatch(ix.dir.ProjectsDir())
+	ix.addWatch(ix.dir.AccountPath()) // usage snapshot lives outside the dir
 	projects, err := ix.dir.ListProjects()
 	if err != nil {
 		return
