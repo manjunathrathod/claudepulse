@@ -44,7 +44,7 @@ func run() error {
 	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: parseLevel(cfg.LogLevel)}))
 
 	if info, err := os.Stat(cfg.ClaudeDir); err != nil || !info.IsDir() {
-		return fmt.Errorf("claude dir %q is not a directory (use -claude-dir)", cfg.ClaudeDir)
+		return fmt.Errorf("claude dir %q is not a directory — has Claude Code been run on this machine? (override with -claude-dir or CLAUDE_CONFIG_DIR)", cfg.ClaudeDir)
 	}
 	if inside, err := pathInside(cfg.DBPath, cfg.ClaudeDir); err != nil {
 		return err

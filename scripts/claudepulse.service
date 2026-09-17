@@ -1,0 +1,16 @@
+# systemd user service for ClaudePulse (Linux).
+#   mkdir -p ~/.config/systemd/user && cp scripts/claudepulse.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now claudepulse
+# Adjust ExecStart/WorkingDirectory to where you put the binary.
+[Unit]
+Description=ClaudePulse — local Claude Code usage dashboard
+After=default.target
+
+[Service]
+ExecStart=%h/.local/bin/claudepulse
+WorkingDirectory=%h/.local/share/claudepulse
+Environment=CP_DB=%h/.local/share/claudepulse/claudepulse.db
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

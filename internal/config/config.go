@@ -26,13 +26,26 @@ type Config struct {
 	Version      bool          // print the version and exit
 }
 
+// DefaultClaudeDir mirrors how Claude Code locates its data directory: the
+// CLAUDE_CONFIG_DIR environment variable when set, otherwise ~/.claude in the
+// current user's home (%USERPROFILE% on Windows, $HOME on Linux/macOS).
+func DefaultClaudeDir(getenv func(string) string) string {
+	if v := getenv("CLAUDE_CONFIG_DIR"); v != "" {
+		return filepath.Clean(v)
+	}
+	home, err := os.UserHomeDir()
+	if err != nil || home == "" {
+		return ".claude"
+	}
+	return filepath.Join(home, ".claude")
+}
+
 // Load parses args (without the program name) on top of CP_* environment
 // variables and built-in defaults.
 func Load(args []string, getenv func(string) string, stderr io.Writer) (Config, error) {
-	home, _ := os.UserHomeDir()
 	def := Config{
 		Addr:         "127.0.0.1:" + DefaultPort,
-		ClaudeDir:    filepath.Join(home, ".claude"),
+		ClaudeDir:    DefaultClaudeDir(getenv),
 		DBPath:       filepath.Join("data", "claudepulse.db"),
 		ScanInterval: 30 * time.Second,
 		LogLevel:     "info",

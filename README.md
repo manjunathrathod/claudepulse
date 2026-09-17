@@ -31,12 +31,49 @@ safety net.
 Stop it with Ctrl-C. State lives in `data/claudepulse.db`; delete it (or
 run with `-reset-db`) to re-index from scratch.
 
+## Where it finds your data
+
+ClaudePulse reads the current user's own Claude Code directory, so it needs no
+special permissions — no admin/root, no elevation. Detection matches Claude
+Code itself:
+
+1. `CLAUDE_CONFIG_DIR`, if that environment variable is set;
+2. otherwise `~/.claude` in the user's home directory
+   (`%USERPROFILE%\.claude` on Windows, `$HOME/.claude` on Linux and macOS).
+
+Anyone running it on their own laptop therefore sees their own usage. If Claude
+Code has never run on the machine the folder does not exist and ClaudePulse
+exits with a clear message. `-claude-dir` overrides the location.
+
+## Platforms
+
+Pure Go, no CGO: Windows, Linux and macOS (amd64 and arm64) are supported by
+the same code. Build for your platform, or cross-compile everything:
+
+```bash
+# Linux / macOS
+CGO_ENABLED=0 go build -o claudepulse ./cmd/claudepulse && ./claudepulse
+
+# all platforms into dist/ (POSIX shell; Git Bash works on Windows)
+scripts/build-all.sh v1.3.0
+```
+
+On Linux, `scripts/claudepulse.service` is a systemd *user* unit that starts
+it at login:
+
+```bash
+install -Dm755 claudepulse ~/.local/bin/claudepulse
+mkdir -p ~/.local/share/claudepulse ~/.config/systemd/user
+cp scripts/claudepulse.service ~/.config/systemd/user/
+systemctl --user daemon-reload && systemctl --user enable --now claudepulse
+```
+
 ## Options
 
 | Flag | Env | Default | Meaning |
 |---|---|---|---|
 | `-addr` | `CP_ADDR` | `127.0.0.1:3333` | Listen address. Loopback IPs only; a busy port is a hard error. |
-| `-claude-dir` | `CP_CLAUDE_DIR` | `~/.claude` | Directory to monitor. |
+| `-claude-dir` | `CP_CLAUDE_DIR` | `$CLAUDE_CONFIG_DIR` or `~/.claude` | Directory to monitor. |
 | `-db` | `CP_DB` | `data/claudepulse.db` | SQLite file. Must not be inside `-claude-dir`. |
 | `-scan-interval` | `CP_SCAN_INTERVAL` | `30s` | Safety-net rescan cadence. |
 | `-log-level` | `CP_LOG_LEVEL` | `info` | `debug` logs every file indexed and every request. |
