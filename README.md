@@ -14,7 +14,7 @@ before storing them.
 
 ## Screenshots
 
-**Overview** — KPIs, usage limits with live reset countdowns, tokens per day, models, tools, recent sessions, live processes, system status.
+**Overview** — KPIs, usage limits with live reset countdowns, output tokens per day, model share, top tools, recent sessions, live processes and activity by hour.
 
 ![Overview](docs/screenshots/overview.png)
 
@@ -24,20 +24,7 @@ before storing them.
 ![Overview, light theme](docs/screenshots/overview-light.png)
 </details>
 
-**Session detail** — timeline, subagents, model share, tool breakdown.
-
-![Session detail](docs/screenshots/session.png)
-
-<details>
-<summary><b>More pages</b> — Sessions, Projects, Settings, Skills & plugins, Plans & history, System</summary>
-
-![Sessions](docs/screenshots/sessions.png)
-![Projects](docs/screenshots/projects.png)
-![Settings](docs/screenshots/settings.png)
-![Skills and plugins](docs/screenshots/skills.png)
-![Plans and history](docs/screenshots/plans.png)
-![System](docs/screenshots/system.png)
-</details>
+Every other page (Projects, Sessions, Session detail, Settings, Skills & plugins, Plans & history, System) follows the same layout — run the app to see them against your own data.
 
 ## Quick start
 
