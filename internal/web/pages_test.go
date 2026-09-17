@@ -198,3 +198,18 @@ func TestBuildDailyIgnoresCorruptDatesAndHonoursWindow(t *testing.T) {
 		t.Errorf("all-corrupt input should yield an empty chart, got %+v", only)
 	}
 }
+
+// TestTemplatesBalanced guards against a stray tag pushing content out of the
+// main column (a </div> too many once broke the dashboard layout).
+func TestTemplatesBalanced(t *testing.T) {
+	srv := testServer(t)
+	for _, p := range []string{"/", "/projects", "/projects/1", "/sessions", "/sessions/" + alphaSession, "/settings", "/skills", "/plans", "/system"} {
+		html := getHTML(t, srv, p, http.StatusOK)
+		if o, c := strings.Count(html, "<div"), strings.Count(html, "</div>"); o != c {
+			t.Errorf("%s: %d <div> vs %d </div>", p, o, c)
+		}
+		if o, c := strings.Count(html, "<section"), strings.Count(html, "</section>"); o != c {
+			t.Errorf("%s: %d <section> vs %d </section>", p, o, c)
+		}
+	}
+}
