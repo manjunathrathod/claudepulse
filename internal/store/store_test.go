@@ -14,7 +14,7 @@ func TestOpenMigratesAndIsIdempotent(t *testing.T) {
 			t.Fatalf("open #%d: %v", i, err)
 		}
 		var n int
-		if err := st.DB().QueryRow(`SELECT COUNT(*) FROM schema_migrations`).Scan(&n); err != nil || n != 1 {
+		if err := st.DB().QueryRow(`SELECT COUNT(*) FROM schema_migrations`).Scan(&n); err != nil || n != 3 {
 			t.Errorf("open #%d: migrations applied = %d err=%v", i, n, err)
 		}
 		var mode string

@@ -88,6 +88,7 @@ func (e errNoTemplate) Error() string { return "no template named " + string(e) 
 
 type kpi struct {
 	Label, Value, Hint string
+	Help               string // one-line hover description
 	Accent             string // "blue" | "purple" | ""
 }
 
@@ -181,12 +182,12 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 
 	p := dashboardPage{Recent: recent, Live: live, Hours: hours[:], Daily: buildDaily(daily, days)}
 	p.KPIs = []kpi{
-		{Label: "Output tokens", Value: compact(tot.OutputTokens), Hint: "deduped per API message", Accent: "blue"},
-		{Label: "Cache read tokens", Value: compact(tot.CacheRead), Hint: "prompt-cache hits", Accent: "purple"},
-		{Label: "Sessions", Value: comma(tot.Sessions), Hint: "across " + comma(tot.Projects) + " projects"},
-		{Label: "Prompts", Value: comma(tot.UserPrompts), Hint: comma(tot.AssistantMsgs) + " replies"},
-		{Label: "Tool calls", Value: comma(tot.ToolCalls), Hint: comma(tot.Subagents) + " subagents"},
-		{Label: "Live now", Value: strconv.Itoa(len(live)), Hint: "Claude Code processes"},
+		{Label: "Output tokens", Value: compact(tot.OutputTokens), Hint: "deduped per API message", Accent: "blue", Help: "Tokens Claude generated in replies, counted once per API message"},
+		{Label: "Cache read tokens", Value: compact(tot.CacheRead), Hint: "prompt-cache hits", Accent: "purple", Help: "Context re-read from the prompt cache instead of being resent"},
+		{Label: "Sessions", Value: comma(tot.Sessions), Hint: "across " + comma(tot.Projects) + " projects", Help: "Conversations found under ~/.claude/projects"},
+		{Label: "Prompts", Value: comma(tot.UserPrompts), Hint: comma(tot.AssistantMsgs) + " replies", Help: "Messages you typed; replies are Claude's answers"},
+		{Label: "Tool calls", Value: comma(tot.ToolCalls), Hint: comma(tot.Subagents) + " subagents", Help: "Times Claude ran a tool such as Bash, Edit or Read"},
+		{Label: "Live now", Value: strconv.Itoa(len(live)), Hint: "Claude Code processes", Help: "Claude Code sessions currently running on this machine"},
 	}
 	for _, h := range hours {
 		if h > p.HoursMax {

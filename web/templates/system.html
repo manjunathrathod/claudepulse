@@ -1,0 +1,80 @@
+{{define "content"}}
+{{$p := .Page}}
+{{$i := $p.Info}}
+<section class="kpi-grid kpi-grid-4" aria-label="System summary">
+  <div class="card kpi kpi-blue"><div class="kpi-label">Claude Code {{template "help.html" "Installed CLI version, from the last update record"}}</div><div class="kpi-value">{{if $.CLIVersion}}v{{$.CLIVersion}}{{else}}—{{end}}</div><div class="kpi-hint">{{with $p.LastUpdate}}updated {{ago (index . "timestamp")}}{{else}}no update record{{end}}</div></div>
+  <div class="card kpi"><div class="kpi-label">Monitor uptime {{template "help.html" "How long this claude-monitor process has been running"}}</div><div class="kpi-value">{{duration $p.Uptime}}</div><div class="kpi-hint">{{$p.GoVersion}}</div></div>
+  <div class="card kpi"><div class="kpi-label">Database {{template "help.html" "Size of the SQLite index incl. WAL files"}}</div><div class="kpi-value">{{bytes $p.DBBytes}}</div><div class="kpi-hint mono">{{basename $i.DBPath}}</div></div>
+  <div class="card kpi kpi-purple"><div class="kpi-label">~/.claude on disk {{template "help.html" "Total bytes across every top-level entry"}}</div><div class="kpi-value">{{bytes $p.DirsTotal}}</div><div class="kpi-hint">{{len $p.Dirs}} entries</div></div>
+</section>
+
+<section class="grid grid-3">
+  <div class="card">
+    <div class="card-head"><div><h2 class="card-title">Index {{template "help.html" "State of the last scan of ~/.claude"}}</h2><p class="card-sub">Refreshes every {{$i.ScanInterval}}</p></div>{{template "index-status.html" $.Index}}</div>
+    <dl class="kv">
+      <div><dt>Last scan</dt><dd>{{if $.Index.FinishedAt.IsZero}}—{{else}}{{ago $.Index.FinishedAt}} <span class="dim">· {{$.Index.Duration}}</span>{{end}}</dd></div>
+      <div><dt>Files</dt><dd class="mono">{{$.Index.Files}} <span class="dim">({{$.Index.FilesChanged}} changed)</span></dd></div>
+      <div><dt>Lines read</dt><dd class="mono">{{comma (int64 $.Index.LinesRead)}}</dd></div>
+      <div><dt>Malformed lines</dt><dd class="mono">{{if $.Index.Malformed}}<span class="warn-text">{{$.Index.Malformed}}</span>{{else}}0{{end}}</dd></div>
+      <div><dt>Pruned files</dt><dd class="mono">{{$.Index.Pruned}}</dd></div>
+      {{if $.Index.Err}}<div><dt>Error</dt><dd class="warn-text">{{$.Index.Err}}</dd></div>{{end}}
+    </dl>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div><h2 class="card-title">Configuration {{template "help.html" "Runtime settings of this monitor (flags or CM_* env)"}}</h2><p class="card-sub">claude-monitor</p></div></div>
+    <dl class="kv">
+      <div><dt>Watching</dt><dd class="mono" title="{{$i.ClaudeDir}}">{{$i.ClaudeDir}}</dd></div>
+      <div><dt>Database</dt><dd class="mono" title="{{$i.DBPath}}">{{$i.DBPath}}</dd></div>
+      <div><dt>Listening</dt><dd class="mono">{{$.Addr}}</dd></div>
+      <div><dt>Scan interval</dt><dd class="mono">{{$i.ScanInterval}}</dd></div>
+      <div><dt>Started</dt><dd>{{datetime $i.StartedAt}}</dd></div>
+    </dl>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div><h2 class="card-title">Claude Code install {{template "help.html" "From .last-update-result.json and .last-cleanup"}}</h2><p class="card-sub">Housekeeping</p></div></div>
+    <dl class="kv">
+      {{with $p.LastUpdate}}
+      <div><dt>Last update</dt><dd>{{ago (index . "timestamp")}} {{if eq (index . "status") "success"}}<span class="chip ok">ok</span>{{else}}<span class="chip warn">{{index . "status"}}</span>{{end}}</dd></div>
+      <div><dt>Version</dt><dd class="mono">{{index . "version_from"}} → {{index . "version_to"}}</dd></div>
+      <div><dt>Install kind</dt><dd class="mono">{{index . "path"}}</dd></div>
+      {{else}}
+      <div><dt>Last update</dt><dd class="dim">no record</dd></div>
+      {{end}}
+      <div><dt>Last cleanup</dt><dd>{{if $p.LastCleanup}}{{ago $p.LastCleanup}} <span class="dim">· {{datetime $p.LastCleanup}}</span>{{else}}<span class="dim">never</span>{{end}}</dd></div>
+      <div><dt>Live processes</dt><dd class="mono">{{len $p.Live}}</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="grid grid-2-1">
+  <div class="card">
+    <div class="card-head"><div><h2 class="card-title">Disk usage {{template "help.html" "Bytes and file counts per top-level entry of ~/.claude"}}</h2><p class="card-sub">Largest first · recomputed every 5 minutes</p></div></div>
+    {{if $p.Dirs}}
+    <ul class="meter-list compact">
+      {{range $p.Dirs}}
+      <li class="meter">
+        <div class="meter-row"><span class="meter-name mono">{{.Name}}</span><span class="dim sm">{{comma .Files}} files</span><span class="meter-val mono">{{bytes .Bytes}}</span></div>
+        <div class="meter-track"><div class="meter-fill purple" style="width:{{pctNum .Bytes $p.DirsTotal}}%"></div></div>
+      </li>
+      {{end}}
+    </ul>
+    {{else}}
+    <div class="empty">Not computed yet.</div>
+    {{end}}
+  </div>
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><div><h2 class="card-title">Index tables {{template "help.html" "Row counts in the SQLite database"}}</h2><p class="card-sub">Rows</p></div></div>
+      <dl class="kv">
+        {{range $p.CountKeys}}<div><dt class="mono">{{.}}</dt><dd class="mono">{{comma (index $p.Counts .)}}</dd></div>{{end}}
+      </dl>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><h2 class="card-title">Live sessions {{template "help.html" "Claude Code processes currently running"}}</h2><p class="card-sub">sessions/*.json</p></div></div>
+      {{template "live.html" $p.Live}}
+    </div>
+  </div>
+</section>
+{{end}}

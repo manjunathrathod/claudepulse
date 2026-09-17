@@ -18,7 +18,8 @@ Checklist specific to this project:
 5. Is every SQL statement parameterised? Are upserts idempotent?
 6. Does the server bind to loopback only? Is the port configurable with 48273 as
    the default, and does a busy port fail loudly?
-7. Are the templates free of raw transcript content? Is user-controlled text
-   passed through `html/template` escaping (no `template.HTML` on file data)?
+7. Are the templates free of raw transcript content (the only exception is the
+   truncated prompt list on /plans)? Is user-controlled text passed through
+   `html/template` escaping (no `template.HTML` on file data)?
 8. Do tests use scrubbed fixtures and not the live `~/.claude`?
 Finish with `go vet ./... && go test ./... -count=1` and include the output.

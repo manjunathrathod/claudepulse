@@ -3,7 +3,7 @@
 <section class="kpi-grid" aria-label="Key figures">
   {{range $p.KPIs}}
   <div class="card kpi{{if .Accent}} kpi-{{.Accent}}{{end}}">
-    <div class="kpi-label">{{.Label}}</div>
+    <div class="kpi-label">{{.Label}} {{template "help.html" .Help}}</div>
     <div class="kpi-value" title="{{.Hint}}">{{.Value}}</div>
     <div class="kpi-hint">{{.Hint}}</div>
   </div>
@@ -15,7 +15,7 @@
   <div class="card">
     <div class="card-head">
       <div>
-        <h2 class="card-title">Output tokens per day</h2>
+        <h2 class="card-title">Output tokens per day {{template "help.html" "Tokens Claude generated each day, stacked by model"}}</h2>
         <p class="card-sub">Generated tokens by model, deduped per API message</p>
       </div>
       <div class="seg" role="group" aria-label="Time range">
@@ -35,7 +35,7 @@
   <div class="card">
     <div class="card-head">
       <div>
-        <h2 class="card-title">Recent sessions</h2>
+        <h2 class="card-title">Recent sessions {{template "help.html" "Your latest conversations, newest first"}}</h2>
         <p class="card-sub">Newest first</p>
       </div>
     </div>
@@ -70,7 +70,7 @@
   <div class="card">
     <div class="card-head">
       <div>
-        <h2 class="card-title">Models</h2>
+        <h2 class="card-title">Models {{template "help.html" "Which models produced your output tokens"}}</h2>
         <p class="card-sub">Share of output tokens</p>
       </div>
     </div>
@@ -93,7 +93,7 @@
 
     <div class="card-head mt">
       <div>
-        <h2 class="card-title">Top tools</h2>
+        <h2 class="card-title">Top tools {{template "help.html" "Most-used tools across all sessions"}}</h2>
         <p class="card-sub">Calls across all sessions</p>
       </div>
     </div>
@@ -115,7 +115,7 @@
     <div class="card">
       <div class="card-head">
         <div>
-          <h2 class="card-title">Live sessions</h2>
+          <h2 class="card-title">Live sessions {{template "help.html" "Claude Code processes running right now"}}</h2>
           <p class="card-sub">Refreshes every 10 s</p>
         </div>
       </div>
@@ -125,7 +125,7 @@
     <div class="card">
       <div class="card-head">
         <div>
-          <h2 class="card-title">Activity by hour</h2>
+          <h2 class="card-title">Activity by hour {{template "help.html" "When during the day you send prompts (UTC)"}}</h2>
           <p class="card-sub">Prompts sent, UTC</p>
         </div>
       </div>
@@ -143,7 +143,7 @@
 
 <section class="grid grid-3">
   <div class="card">
-    <div class="card-head"><div><h2 class="card-title">System</h2><p class="card-sub">Claude Code install</p></div></div>
+    <div class="card-head"><div><h2 class="card-title">System {{template "help.html" "Installed Claude Code version and index health"}}</h2><p class="card-sub">Claude Code install</p></div></div>
     <dl class="kv">
       <div><dt>Version</dt><dd class="mono">{{if $.CLIVersion}}{{$.CLIVersion}}{{else}}—{{end}}</dd></div>
       {{with $p.LastUpdate}}
@@ -155,7 +155,7 @@
   </div>
 
   <div class="card">
-    <div class="card-head"><div><h2 class="card-title">Disk usage</h2><p class="card-sub">{{bytes $p.DirsTotal}} in ~/.claude</p></div></div>
+    <div class="card-head"><div><h2 class="card-title">Disk usage {{template "help.html" "Largest folders inside ~/.claude"}}</h2><p class="card-sub">{{bytes $p.DirsTotal}} in ~/.claude</p></div></div>
     <ul class="meter-list compact">
       {{range $p.Dirs}}
       <li class="meter">
@@ -169,7 +169,7 @@
   </div>
 
   <div class="card">
-    <div class="card-head"><div><h2 class="card-title">Claude's own stats</h2><p class="card-sub">From stats-cache.json{{with $p.Stats}} · computed {{.LastComputedDate}}{{end}}</p></div></div>
+    <div class="card-head"><div><h2 class="card-title">Claude's own stats {{template "help.html" "Figures Claude Code keeps in stats-cache.json, for comparison"}}</h2><p class="card-sub">From stats-cache.json{{with $p.Stats}} · computed {{.LastComputedDate}}{{end}}</p></div></div>
     {{with $p.Stats}}
     <dl class="kv">
       <div><dt>Sessions</dt><dd class="mono">{{comma (int64 .TotalSessions)}}</dd></div>

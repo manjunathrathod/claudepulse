@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -27,7 +28,11 @@ type Server struct {
 	pages    pages
 	partials *template.Template
 	addr     string
+	info     Info
 }
+
+// goVersion is recorded at build time for the System page.
+var goVersion = runtime.Version()
 
 // New builds the router.
 func New(st *store.Store, ix *indexer.Indexer, log *slog.Logger) *Server {
@@ -50,6 +55,10 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /projects/{id}", s.handleProject)
 	s.mux.HandleFunc("GET /sessions", s.handleSessions)
 	s.mux.HandleFunc("GET /sessions/{id}", s.handleSession)
+	s.mux.HandleFunc("GET /settings", s.handleSettings)
+	s.mux.HandleFunc("GET /skills", s.handleSkills)
+	s.mux.HandleFunc("GET /plans", s.handlePlans)
+	s.mux.HandleFunc("GET /system", s.handleSystemPage)
 	s.mux.HandleFunc("GET /partials/live", s.handleLivePartial)
 	s.mux.HandleFunc("GET /partials/index", s.handleIndexPartial)
 	s.mux.Handle("GET /static/", http.StripPrefix("/static/", cacheStatic(http.FileServer(staticFS()))))

@@ -1,0 +1,84 @@
+{{define "content"}}
+{{$p := .Page}}
+{{$u := $p.UserSummary}}
+<section class="kpi-grid kpi-grid-4" aria-label="Settings summary">
+  <div class="card kpi kpi-blue"><div class="kpi-label">Model {{template "help.html" "Default model from ~/.claude/settings.json"}}</div><div class="kpi-value">{{if $u.Model}}{{$u.Model}}{{else}}<span class="dim">default</span>{{end}}</div><div class="kpi-hint">theme {{if $u.Theme}}{{$u.Theme}}{{else}}auto{{end}}{{if $u.UpdateChannel}} · {{$u.UpdateChannel}} channel{{end}}</div></div>
+  <div class="card kpi"><div class="kpi-label">Permission mode {{template "help.html" "How tool calls are approved by default"}}</div><div class="kpi-value">{{if $u.DefaultMode}}{{$u.DefaultMode}}{{else}}<span class="dim">default</span>{{end}}</div><div class="kpi-hint">{{$u.Allow}} allow · {{$u.Deny}} deny · {{$u.Ask}} ask rules</div></div>
+  <div class="card kpi"><div class="kpi-label">Hooks {{template "help.html" "Lifecycle events with commands configured"}}</div><div class="kpi-value">{{len $u.Hooks}}</div><div class="kpi-hint">{{if $u.Hooks}}{{range $i, $h := $u.Hooks}}{{if $i}}, {{end}}{{$h}}{{end}}{{else}}no hooks configured{{end}}</div></div>
+  <div class="card kpi kpi-purple"><div class="kpi-label">Projects with config {{template "help.html" "Projects that have CLAUDE.md, settings, agents, skills or MCP servers"}}</div><div class="kpi-value">{{$p.WithConfig}}</div><div class="kpi-hint">of {{len $p.Projects}} projects</div></div>
+</section>
+
+<section class="grid grid-2-1">
+  <div class="stack">
+    <div class="card">
+      <div class="card-head">
+        <div><h2 class="card-title">User settings {{template "help.html" "Your global Claude Code settings; secrets are redacted before storage"}}</h2><p class="card-sub mono">{{$p.UserPath}}</p></div>
+        {{if $u.Keys}}<span class="chip">{{len $u.Keys}} keys</span>{{end}}
+      </div>
+      {{if $p.UserJSON}}
+      <pre class="json"><code>{{$p.UserJSON}}</code></pre>
+      {{else}}
+      <div class="empty tall">settings.json not found.</div>
+      {{end}}
+      {{if or $u.EnvKeys $u.Plugins}}
+      <dl class="kv mt-sm">
+        {{if $u.EnvKeys}}<div><dt>Environment keys</dt><dd class="mono">{{range $i, $k := $u.EnvKeys}}{{if $i}}, {{end}}{{$k}}{{end}}</dd></div>{{end}}
+        {{if $u.Plugins}}<div><dt>Enabled plugins</dt><dd class="mono">{{range $i, $k := $u.Plugins}}{{if $i}}, {{end}}{{$k}}{{end}}</dd></div>{{end}}
+      </dl>
+      {{end}}
+    </div>
+
+    {{with $p.Selected}}
+    <div class="card" id="project-settings">
+      <div class="card-head">
+        <div><h2 class="card-title">{{basename .Name}} {{template "help.html" "Settings files inside this project's .claude directory"}}</h2><p class="card-sub mono">{{.RealPath}}</p></div>
+        <a class="btn-ghost" href="/projects/{{.ProjectID}}">Open project</a>
+      </div>
+      {{if $p.SelectedJSON}}
+      {{range $p.SelectedJSON}}
+      <div class="sub-head"><span class="chip{{if eq .Scope "local"}} purple{{end}}">{{.Scope}}</span><span class="mono dim sm">{{basename .Path}}</span><span class="dim sm">· captured {{ago .CapturedAt}}</span></div>
+      <pre class="json"><code>{{.JSON}}</code></pre>
+      {{end}}
+      {{else}}
+      <div class="empty">This project has no .claude/settings.json or settings.local.json.</div>
+      {{end}}
+      <dl class="kv mt-sm">
+        <div><dt>CLAUDE.md</dt><dd>{{if .ClaudeMDBytes}}{{bytes .ClaudeMDBytes}}{{else}}<span class="dim">none</span>{{end}}</dd></div>
+        <div><dt>Agents</dt><dd class="mono">{{if .Agents}}{{range $i, $a := .Agents}}{{if $i}}, {{end}}{{$a}}{{end}}{{else}}<span class="dim">none</span>{{end}}</dd></div>
+        <div><dt>Commands</dt><dd class="mono">{{if .Commands}}{{range $i, $a := .Commands}}{{if $i}}, {{end}}{{$a}}{{end}}{{else}}<span class="dim">none</span>{{end}}</dd></div>
+        <div><dt>Skills</dt><dd class="mono">{{if .Skills}}{{range $i, $a := .Skills}}{{if $i}}, {{end}}{{$a}}{{end}}{{else}}<span class="dim">none</span>{{end}}</dd></div>
+        <div><dt>MCP servers</dt><dd class="mono">{{if .MCPServers}}{{range $i, $a := .MCPServers}}{{if $i}}, {{end}}{{$a}}{{end}}{{else}}<span class="dim">none</span>{{end}}</dd></div>
+      </dl>
+    </div>
+    {{end}}
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div><h2 class="card-title">Per-project setup {{template "help.html" "What each project directory adds on top of your user settings"}}</h2><p class="card-sub">Click a project to view its settings files</p></div></div>
+    {{if $p.Projects}}
+    <ul class="plain-list">
+      {{range $p.Projects}}
+      <li class="row-item stacked{{if and $p.Selected (eq $p.Selected.ProjectID .ProjectID)}} is-selected{{end}}">
+        <div class="row-main">
+          <span><a class="link strong" href="/settings?project={{.ProjectID}}#project-settings">{{basename .Name}}</a>{{if and .RealPath (not .ExistsOnDisk)}} <span class="chip warn">missing</span>{{end}}</span>
+          <span class="dim mono sm" title="{{if .RealPath}}{{.RealPath}}{{else}}{{.Name}}{{end}}">{{if .RealPath}}{{.RealPath}}{{else}}{{.Name}}{{end}}</span>
+        </div>
+        <div class="chips">
+          {{if .ClaudeMDBytes}}<span class="chip" title="{{bytes .ClaudeMDBytes}}">CLAUDE.md</span>{{end}}
+          {{if .HasSettings}}<span class="chip">settings</span>{{end}}
+          {{if .HasLocal}}<span class="chip purple">local</span>{{end}}
+          {{if .Agents}}<span class="chip" title="{{range $i, $a := .Agents}}{{if $i}}, {{end}}{{$a}}{{end}}">{{len .Agents}} agents</span>{{end}}
+          {{if .Commands}}<span class="chip" title="{{range $i, $a := .Commands}}{{if $i}}, {{end}}{{$a}}{{end}}">{{len .Commands}} commands</span>{{end}}
+          {{if .Skills}}<span class="chip" title="{{range $i, $a := .Skills}}{{if $i}}, {{end}}{{$a}}{{end}}">{{len .Skills}} skills</span>{{end}}
+          {{if .MCPServers}}<span class="chip ok" title="{{range $i, $a := .MCPServers}}{{if $i}}, {{end}}{{$a}}{{end}}">{{len .MCPServers}} MCP</span>{{end}}
+          {{if not (or .ClaudeMDBytes .HasSettings .HasLocal .Agents .Commands .Skills .MCPServers)}}<span class="dim sm">no project config</span>{{end}}
+        </div>
+      </li>
+      {{end}}
+    </ul>
+    {{else}}
+    <div class="empty tall">No projects indexed yet.</div>
+    {{end}}
+  </div>
+</section>
+{{end}}

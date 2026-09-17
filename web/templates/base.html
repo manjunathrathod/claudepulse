@@ -15,47 +15,47 @@
 <body>
 <div class="shell">
   <aside class="sidebar">
-    <a class="brand" href="/">
+    <a class="brand" href="/" title="claude-monitor — local dashboard for your ~/.claude directory">
       <span class="brand-mark" aria-hidden="true"></span>
       <span class="brand-text">claude<span class="brand-dim">-monitor</span></span>
     </a>
     <nav class="nav" aria-label="Main">
       <div class="nav-group">Monitor</div>
-      <a class="nav-item{{if eq .Active "dashboard"}} is-active{{end}}" href="/">
+      <a class="nav-item{{if eq .Active "dashboard"}} is-active{{end}}" href="/" title="Usage totals, daily tokens, recent activity and system status at a glance">
         <svg class="nav-ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
         Overview
       </a>
-      <a class="nav-item{{if eq .Active "projects"}} is-active{{end}}" href="/projects">
+      <a class="nav-item{{if eq .Active "projects"}} is-active{{end}}" href="/projects" title="Every directory you have run Claude Code in, with per-project usage">
         <svg class="nav-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h3l1.5 1.5h6.5A1.5 1.5 0 0 1 17 8v6.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 14.5z"/></svg>
         Projects
       </a>
-      <a class="nav-item{{if eq .Active "sessions"}} is-active{{end}}" href="/sessions">
+      <a class="nav-item{{if eq .Active "sessions"}} is-active{{end}}" href="/sessions" title="Browse and filter individual conversations and their timelines">
         <svg class="nav-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5h12M4 10h12M4 15h8"/></svg>
         Sessions
       </a>
       <div class="nav-group">Configuration</div>
-      <span class="nav-item is-disabled" title="Coming in Phase 4">
+      <a class="nav-item{{if eq .Active "settings"}} is-active{{end}}" href="/settings" title="Your Claude Code settings and each project's configuration (secrets redacted)">
         <svg class="nav-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3"/><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4"/></svg>
-        Settings <span class="nav-soon">soon</span>
-      </span>
-      <span class="nav-item is-disabled" title="Coming in Phase 4">
+        Settings
+      </a>
+      <a class="nav-item{{if eq .Active "skills"}} is-active{{end}}" href="/skills" title="Installed skills, plugin marketplaces and installed plugins">
         <svg class="nav-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3l2 4 4.5.6-3.3 3.2.8 4.5L10 13l-4 2.3.8-4.5L3.5 7.6 8 7z"/></svg>
-        Skills &amp; plugins <span class="nav-soon">soon</span>
-      </span>
-      <span class="nav-item is-disabled" title="Coming in Phase 4">
+        Skills &amp; plugins
+      </a>
+      <a class="nav-item{{if eq .Active "plans"}} is-active{{end}}" href="/plans" title="Plan-mode documents and your searchable prompt history">
         <svg class="nav-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3.5h7l3 3v10H5z"/><path d="M12 3.5v3h3M7.5 10h5M7.5 13h5"/></svg>
-        Plans &amp; history <span class="nav-soon">soon</span>
-      </span>
+        Plans &amp; history
+      </a>
       <div class="nav-group">System</div>
-      <span class="nav-item is-disabled" title="Coming in Phase 4">
+      <a class="nav-item{{if eq .Active "system"}} is-active{{end}}" href="/system" title="Claude Code version, index health, disk usage and monitor configuration">
         <svg class="nav-ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="9" rx="1.5"/><path d="M7 16.5h6M10 13v3.5"/></svg>
-        System <span class="nav-soon">soon</span>
-      </span>
+        System
+      </a>
     </nav>
     <div class="sidebar-foot">
-      <div class="foot-row"><span class="foot-k">Claude Code</span><span class="foot-v mono">{{if .CLIVersion}}v{{.CLIVersion}}{{else}}—{{end}}</span></div>
-      <div class="foot-row"><span class="foot-k">Watching</span><span class="foot-v mono" title="{{.ClaudeDir}}">{{basename .ClaudeDir}}</span></div>
-      <div class="foot-row"><span class="foot-k">Listening</span><span class="foot-v mono" title="{{.Addr}}">{{.Addr}}</span></div>
+      <div class="foot-row" title="Installed Claude Code CLI version"><span class="foot-k">Claude Code</span><span class="foot-v mono">{{if .CLIVersion}}v{{.CLIVersion}}{{else}}—{{end}}</span></div>
+      <div class="foot-row" title="Directory being indexed"><span class="foot-k">Watching</span><span class="foot-v mono" title="{{.ClaudeDir}}">{{basename .ClaudeDir}}</span></div>
+      <div class="foot-row" title="Local address this dashboard is served on"><span class="foot-k">Listening</span><span class="foot-v mono" title="{{.Addr}}">{{.Addr}}</span></div>
     </div>
   </aside>
 
@@ -66,7 +66,7 @@
       </div>
       <div class="topbar-right">
         {{template "index-status.html" .Index}}
-        {{if eq .Active "dashboard"}}<a class="btn-ghost" href="/api/v1/summary" title="Raw JSON for this dashboard">JSON</a>{{end}}
+        {{if eq .Active "dashboard"}}<a class="btn-ghost" href="/api/v1/summary" title="The same numbers as raw JSON, for scripts">JSON</a>{{end}}
       </div>
     </header>
     <main class="content">

@@ -1,0 +1,56 @@
+{{define "content"}}
+{{$p := .Page}}
+<section class="grid grid-1-2">
+  <div class="card">
+    <div class="card-head"><div><h2 class="card-title">Plans {{template "help.html" "Documents written in plan mode, stored in ~/.claude/plans"}}</h2><p class="card-sub">Newest first</p></div><span class="chip">{{len $p.Plans}}</span></div>
+    {{if $p.Plans}}
+    <ul class="plain-list">
+      {{range $p.Plans}}
+      <li class="row-item">
+        <div class="row-main"><span class="strong-text">{{truncate .Title 80}}</span><span class="dim mono sm" title="{{.SourcePath}}">{{.Slug}}.md · {{bytes .Size}}</span></div>
+        <div class="row-side"><span class="dim sm" title="{{datetime .MTime}}">{{ago .MTime}}</span></div>
+      </li>
+      {{end}}
+    </ul>
+    {{else}}
+    <div class="empty tall">No plan files yet.</div>
+    {{end}}
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div><h2 class="card-title">Prompt history {{template "help.html" "The first line of every prompt you sent, from history.jsonl"}}</h2><p class="card-sub">{{comma $p.Total}} prompts{{if $p.Query}} matching “{{$p.Query}}”{{end}} · page {{$p.Page}} of {{$p.Last}}</p></div>
+      <form method="get" action="/plans" class="inline-form">
+        <input class="input" type="search" name="q" value="{{$p.Query}}" placeholder="Search prompts" maxlength="80" aria-label="Search prompts">
+        <button class="btn" type="submit">Search</button>
+        {{if $p.Query}}<a class="btn-ghost" href="/plans">Clear</a>{{end}}
+      </form>
+    </div>
+    {{if $p.History}}
+    <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Prompt</th><th>Project</th><th class="num">When</th></tr></thead>
+      <tbody>
+      {{range $p.History}}
+      <tr>
+        <td class="cell-desc">{{if .HasSession}}<a class="link" href="/sessions/{{.SessionID}}" title="Open session {{.SessionID}}">{{.Display}}</a>{{else}}<span title="Session transcript no longer on disk">{{.Display}}</span>{{end}}</td>
+        <td class="nowrap">{{if .ProjectID}}<a class="link" href="/projects/{{.ProjectID}}" title="{{.ProjectPath}}">{{basename .ProjectPath}}</a>{{else if .ProjectPath}}<span class="dim" title="{{.ProjectPath}}">{{basename .ProjectPath}}</span>{{else}}<span class="dim">—</span>{{end}}</td>
+        <td class="num dim nowrap" title="{{datetime .TS}}">{{ago .TS}}</td>
+      </tr>
+      {{end}}
+      </tbody>
+    </table>
+    </div>
+    {{if gt $p.Last 1}}
+    <div class="pager">
+      {{if $p.PrevURL}}<a class="seg-item" href="{{$p.PrevURL}}">‹ Prev</a>{{else}}<span class="seg-item is-off">‹ Prev</span>{{end}}
+      <span class="dim sm">page {{$p.Page}} / {{$p.Last}}</span>
+      {{if $p.NextURL}}<a class="seg-item" href="{{$p.NextURL}}">Next ›</a>{{else}}<span class="seg-item is-off">Next ›</span>{{end}}
+    </div>
+    {{end}}
+    {{else}}
+    <div class="empty tall">{{if $p.Query}}No prompts match.{{else}}history.jsonl is empty or missing.{{end}}</div>
+    {{end}}
+  </div>
+</section>
+{{end}}

@@ -207,19 +207,28 @@ func duration(ms int64) string {
 	}
 }
 
-func parseTS(s string) (time.Time, bool) {
-	if s == "" {
+// parseTS accepts the stored RFC3339 text, a time.Time, or any (from JSON
+// maps) and reports whether a usable time came out.
+func parseTS(v any) (time.Time, bool) {
+	switch x := v.(type) {
+	case time.Time:
+		return x, !x.IsZero()
+	case string:
+		if x == "" {
+			return time.Time{}, false
+		}
+		t, err := time.Parse(time.RFC3339Nano, x)
+		if err != nil {
+			return time.Time{}, false
+		}
+		return t, true
+	default:
 		return time.Time{}, false
 	}
-	t, err := time.Parse(time.RFC3339Nano, s)
-	if err != nil {
-		return time.Time{}, false
-	}
-	return t, true
 }
 
 // ago renders a stored timestamp as a relative phrase.
-func ago(s string) string {
+func ago(s any) string {
 	t, ok := parseTS(s)
 	if !ok {
 		return "—"
@@ -239,7 +248,7 @@ func ago(s string) string {
 	}
 }
 
-func dateOnly(s string) string {
+func dateOnly(s any) string {
 	t, ok := parseTS(s)
 	if !ok {
 		return "—"
@@ -247,7 +256,7 @@ func dateOnly(s string) string {
 	return t.Local().Format("2 Jan 2006")
 }
 
-func dateTime(s string) string {
+func dateTime(s any) string {
 	t, ok := parseTS(s)
 	if !ok {
 		return "—"

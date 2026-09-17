@@ -1,7 +1,7 @@
 # claude-monitor — Implementation Plan
 
-Status: **Phases 1–3 complete (index, JSON API, dashboard, projects, sessions).
-Phase 4 (settings / skills / plugins / plans / history / system pages) next.**
+Status: **Phases 1–4 complete (index, JSON API, all dashboard pages).
+Phase 5 (fsnotify live updates, incremental resume already done) next.**
 Last updated 2026-09-17.
 
 ### UI design system (Phase 2, fixed)
@@ -20,6 +20,9 @@ Brief: dark, glassmorphism cards, blue + purple accents, minimal, desktop-first.
   else (model share, tools, disk, hour-of-day) is CSS meters — no JS needed.
 - Fonts: Inter + JetBrains Mono via Google Fonts (falls back to system fonts
   offline). htmx polls `/partials/live` (10 s) and `/partials/index` (15 s).
+- Hover help: every KPI label, card title and nav item carries a one-line
+  description via `{{template "help.html" "…"}}` (a `?` badge with `title`) or a
+  `title` attribute. Keep them to one sentence, no jargon.
 - Visual verification without the Chrome extension: headless Edge
   `msedge --headless=new --screenshot=… --window-size=1440,1750 http://127.0.0.1:48273/`.
 
@@ -191,7 +194,7 @@ JSON API (`/api/v1/...`) mirrors the above for charts/htmx partials: `summary`,
 | **1** Core index | `config`, `claudedir` decoders, `jsonl` reader, `store` + migrations, `indexer` full + incremental scan, `/healthz`, `/api/v1/{summary,daily,live,system}` | ✅ 2026-09-17 — golden-number tests on fixture; real `~/.claude` (157 MB, 50 files) indexes in 1.5 s |
 | **2** Dashboard + projects | `base.html`, `/`, `/projects`, `/projects/{id}`, Chart.js daily chart, CSS meters, htmx live/index partials | ✅ 2026-09-17 — verified via headless-Edge screenshots against real data |
 | **3** Sessions | `/sessions` (project/model/range/title filters, pagination), `/sessions/{id}` (hero stats, adaptive-bucket timeline, subagents, models, tools), `/api/v1/sessions[/{id}]` | ✅ 2026-09-17 — 506-message session renders in ~30 ms |
-| **4** Settings / skills / plugins / plans / history / system pages | All remaining routes | Every top-level `~/.claude` item is represented somewhere |
+| **4** Settings / skills / plugins / plans / history / system pages | `/settings` (user + per-project, redacted), `/skills` (skills, marketplaces, installed/synced plugins), `/plans` (plans + searchable prompt history), `/system`; hover help on every component | ✅ 2026-09-17 — every top-level `~/.claude` item is represented |
 | **5** Live | fsnotify watcher, incremental resume, live-sessions widget polling via htmx | Start a new Claude session → appears on dashboard within 10 s without restart |
 | **6** Polish | light theme, empty states, `-reset-db`, README, `reviewer` pass | Reviewer checklist clean |
 
@@ -227,4 +230,7 @@ Known limitations carried from the Phase 1 review (revisit in Phase 5/6):
   indexed incorrectly until `-reset-db`. Claude Code only appends, so this is
   accepted for now; a cheap guard would be to re-verify the last N bytes.
 - `-db` paths containing `?`, `#` or `%` are not URI-escaped in the DSN.
-- `.credentials.json` is never opened, but its name/size appears in `dir_stats`.
+- Two `projects` rows that resolve to the same real path (Windows case variants
+  of a cwd) share one `settings_snapshots`/`skills` row; the last one scanned wins.
+- `MarketplacePluginCount` reports 0 for marketplaces installed outside
+  `~/.claude` (the deny-list refuses paths outside the root).

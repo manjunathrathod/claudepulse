@@ -118,7 +118,9 @@ func (ix *Indexer) Scan(ctx context.Context) (err error) {
 	if err != nil {
 		return fmt.Errorf("list projects: %w", err)
 	}
-	keep := map[string]bool{}
+	keep := map[string]bool{ix.dir.HistoryPath(): true} // history has its own cursor; never prune it
+	ids := map[string]int64{}
+	realPaths := map[int64]string{}
 	for _, p := range projects {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -181,6 +183,7 @@ func (ix *Indexer) Scan(ctx context.Context) (err error) {
 		if err := ix.st.UpdateProjectMeta(ctx, pid, projectMeta(p, realPath)); err != nil {
 			return err
 		}
+		ids[p.EncodedName], realPaths[pid] = pid, realPath
 	}
 
 	// An empty listing almost always means projects/ was unreadable rather
@@ -199,6 +202,7 @@ func (ix *Indexer) Scan(ctx context.Context) (err error) {
 	if err := ix.scanMeta(ctx); err != nil {
 		ix.log.Warn("meta scan failed", "err", err)
 	}
+	ix.scanConfig(ctx, projects, ids, realPaths)
 	if err := ix.scanLiveSessions(ctx); err != nil {
 		ix.log.Warn("live sessions scan failed", "err", err)
 	}
@@ -455,33 +459,59 @@ func (ix *Indexer) scanMeta(ctx context.Context) error {
 }
 
 // RedactSettings strips secret-bearing values from a settings.json document
-// before it is stored: every `env` value and any top-level key that names a
-// credential helper or key. Structure is preserved so the UI can still show
-// which keys are set. Returns ok=false for invalid JSON.
+// before it is stored, at any nesting depth: every value under `env`, every
+// string under a key that looks credential-like (key/token/secret/password/
+// credential/auth/helper), and every `command` string (hooks, statusLine and
+// helpers routinely inline tokens). Structure is preserved so the UI can still
+// show which keys are set. Returns ok=false for invalid JSON.
 func RedactSettings(raw []byte) ([]byte, bool) {
-	var doc map[string]any
+	var doc any
 	if err := json.Unmarshal(raw, &doc); err != nil {
 		return nil, false
 	}
-	const redacted = "[redacted]"
-	if env, ok := doc["env"].(map[string]any); ok {
-		for k := range env {
-			env[k] = redacted
-		}
-	}
-	for k, v := range doc {
-		lk := strings.ToLower(k)
-		if strings.Contains(lk, "helper") || strings.Contains(lk, "apikey") || strings.Contains(lk, "token") || strings.Contains(lk, "secret") {
-			if _, isStr := v.(string); isStr {
-				doc[k] = redacted
-			}
-		}
-	}
-	out, err := json.Marshal(doc)
+	out, err := json.Marshal(redactNode(doc, false))
 	if err != nil {
 		return nil, false
 	}
 	return out, true
+}
+
+const redactedMarker = "[redacted]"
+
+var sensitiveKeyParts = []string{"key", "token", "secret", "password", "credential", "auth", "helper", "env", "command"}
+
+func sensitiveKey(k string) bool {
+	lk := strings.ToLower(k)
+	for _, part := range sensitiveKeyParts {
+		if strings.Contains(lk, part) {
+			return true
+		}
+	}
+	return false
+}
+
+// redactNode walks the document; once a sensitive key is entered every string
+// beneath it is replaced.
+func redactNode(v any, sensitive bool) any {
+	switch x := v.(type) {
+	case map[string]any:
+		for k, child := range x {
+			x[k] = redactNode(child, sensitive || sensitiveKey(k))
+		}
+		return x
+	case []any:
+		for i, child := range x {
+			x[i] = redactNode(child, sensitive)
+		}
+		return x
+	case string:
+		if sensitive {
+			return redactedMarker
+		}
+		return x
+	default:
+		return x
+	}
 }
 
 func (ix *Indexer) scanLiveSessions(ctx context.Context) error {

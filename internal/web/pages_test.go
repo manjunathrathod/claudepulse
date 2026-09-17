@@ -29,8 +29,10 @@ func getHTML(t *testing.T, srv *httptest.Server, path string, wantStatus int) st
 	if strings.Contains(s, "MUST-NEVER-BE-READ") {
 		t.Fatalf("GET %s leaked a secret", path)
 	}
-	// Transcript text must never be rendered; the fixture's prompts all contain "scrubbed".
-	if strings.Contains(s, "prompt scrubbed") {
+	// Transcript text must never be rendered; the fixture's prompts all contain
+	// "scrubbed". The one sanctioned exception is the prompt-history list on
+	// /plans, which shows a truncated first line of each prompt by design.
+	if !strings.HasPrefix(path, "/plans") && strings.Contains(s, "prompt scrubbed") {
 		t.Fatalf("GET %s rendered transcript content", path)
 	}
 	return s

@@ -168,7 +168,7 @@ type DirStat struct {
 }
 
 // TopLevelStats walks each top-level entry and sums file counts and bytes.
-// Denied files are counted but never opened.
+// Denied files are skipped entirely (not even listed by name).
 func (d Dir) TopLevelStats() ([]DirStat, error) {
 	entries, err := os.ReadDir(d.Root)
 	if err != nil {
@@ -176,8 +176,11 @@ func (d Dir) TopLevelStats() ([]DirStat, error) {
 	}
 	var out []DirStat
 	for _, e := range entries {
-		st := DirStat{Name: e.Name()}
 		full := filepath.Join(d.Root, e.Name())
+		if d.IsDenied(full) {
+			continue // secrets are not even listed by name
+		}
+		st := DirStat{Name: e.Name()}
 		if !e.IsDir() {
 			if info, err := e.Info(); err == nil {
 				st.Files, st.Bytes = 1, info.Size()

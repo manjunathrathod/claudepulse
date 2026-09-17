@@ -1,0 +1,85 @@
+{{define "content"}}
+{{$p := .Page}}
+<section class="kpi-grid kpi-grid-4" aria-label="Skills and plugins totals">
+  <div class="card kpi kpi-blue"><div class="kpi-label">Skills {{template "help.html" "SKILL.md packages Claude can load on demand"}}</div><div class="kpi-value">{{$p.TotalSkills}}</div><div class="kpi-hint">{{len $p.User}} user · {{len $p.Synced}} synced · {{len $p.Project}} project</div></div>
+  <div class="card kpi"><div class="kpi-label">Marketplaces {{template "help.html" "Plugin catalogues registered with Claude Code"}}</div><div class="kpi-value">{{len $p.Marketplaces}}</div><div class="kpi-hint">{{range $i, $m := $p.Marketplaces}}{{if $i}}, {{end}}{{$m.PluginCount}} plugins{{end}}{{if not $p.Marketplaces}}none registered{{end}}</div></div>
+  <div class="card kpi"><div class="kpi-label">Installed plugins {{template "help.html" "Plugins you installed from a marketplace"}}</div><div class="kpi-value">{{len $p.Installed}}</div><div class="kpi-hint">from installed_plugins.json</div></div>
+  <div class="card kpi kpi-purple"><div class="kpi-label">Synced from claude.ai {{template "help.html" "Plugins enabled on claude.ai and mirrored locally"}}</div><div class="kpi-value">{{range $p.Synced_}}{{.PluginCount}}{{else}}0{{end}}</div><div class="kpi-hint">refreshed automatically</div></div>
+</section>
+
+<section class="grid grid-2-1">
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><div><h2 class="card-title">Skills {{template "help.html" "Name and description come from each SKILL.md frontmatter"}}</h2><p class="card-sub">User and claude.ai-synced skills available in every session</p></div></div>
+      {{if or $p.User $p.Synced}}
+      <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Skill</th><th>Description</th><th>Origin</th></tr></thead>
+        <tbody>
+        {{range $p.User}}
+        <tr><td class="mono strong-text" title="{{.Path}}">{{.Name}}</td><td class="cell-desc">{{if .Description}}{{truncate .Description 140}}{{else}}<span class="dim">—</span>{{end}}</td><td><span class="chip">user</span></td></tr>
+        {{end}}
+        {{range $p.Synced}}
+        <tr><td class="mono strong-text" title="{{.Path}}">{{.Name}}</td><td class="cell-desc">{{if .Description}}{{truncate .Description 140}}{{else}}<span class="dim">—</span>{{end}}</td><td><span class="chip purple">synced</span></td></tr>
+        {{end}}
+        </tbody>
+      </table>
+      </div>
+      {{else}}
+      <div class="empty tall">No skills under ~/.claude/skills.</div>
+      {{end}}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div><h2 class="card-title">Project skills {{template "help.html" "Skills defined inside a project's .claude/skills directory"}}</h2><p class="card-sub">Only loaded when working in that project</p></div></div>
+      {{if $p.Project}}
+      <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Skill</th><th>Description</th><th>Project</th></tr></thead>
+        <tbody>
+        {{range $p.Project}}
+        <tr><td class="mono strong-text" title="{{.Path}}">{{.Name}}</td><td class="cell-desc">{{if .Description}}{{truncate .Description 140}}{{else}}<span class="dim">—</span>{{end}}</td><td><a class="link" href="/projects/{{.ProjectID}}" title="{{.ProjectName}}">{{basename .ProjectName}}</a></td></tr>
+        {{end}}
+        </tbody>
+      </table>
+      </div>
+      {{else}}
+      <div class="empty">No project defines its own skills.</div>
+      {{end}}
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><div><h2 class="card-title">Marketplaces {{template "help.html" "Where plugins can be installed from"}}</h2><p class="card-sub">known_marketplaces.json</p></div></div>
+      {{if $p.Marketplaces}}
+      <ul class="plain-list">
+        {{range $p.Marketplaces}}
+        <li class="row-item">
+          <div class="row-main"><span class="strong-text">{{.Name}}</span><span class="dim mono sm">{{.SourceKind}} · {{.SourceRef}}</span></div>
+          <div class="row-side"><span class="chip">{{.PluginCount}} plugins</span><span class="dim sm" title="{{datetime .LastUpdated}}">{{ago .LastUpdated}}</span></div>
+        </li>
+        {{end}}
+      </ul>
+      {{else}}
+      <div class="empty">No marketplaces registered.</div>
+      {{end}}
+    </div>
+    <div class="card">
+      <div class="card-head"><div><h2 class="card-title">Installed plugins {{template "help.html" "Plugins installed through claude plugin install"}}</h2><p class="card-sub">installed_plugins.json</p></div></div>
+      {{if $p.Installed}}
+      <ul class="plain-list">
+        {{range $p.Installed}}
+        <li class="row-item">
+          <div class="row-main"><span class="strong-text mono">{{.Name}}</span><span class="dim mono sm">{{.SourceRef}}{{if .Version}} · v{{.Version}}{{end}}</span></div>
+          <div class="row-side">{{if .Scope}}<span class="chip">{{.Scope}}</span>{{end}}<span class="dim sm" title="{{datetime .LastUpdated}}">{{ago .LastUpdated}}</span></div>
+        </li>
+        {{end}}
+      </ul>
+      {{else}}
+      <div class="empty">No plugins installed.</div>
+      {{end}}
+    </div>
+  </div>
+</section>
+{{end}}

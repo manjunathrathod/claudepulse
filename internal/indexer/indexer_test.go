@@ -339,6 +339,93 @@ func TestProjectFlagsSurviveUnchangedRescan(t *testing.T) {
 	}
 }
 
+// TestConfigScan covers per-project config, skills, plugins, plans and history
+// indexing, including redaction of project settings and cleanup when the
+// project directory disappears.
+func TestConfigScan(t *testing.T) {
+	root := copyFixture(t)
+	real := t.TempDir()
+	write := func(rel, body string) {
+		t.Helper()
+		p := filepath.Join(real, rel)
+		os.MkdirAll(filepath.Dir(p), 0o755)
+		if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("CLAUDE.md", "# project\n")
+	write(filepath.Join(".claude", "settings.json"), `{"model":"sonnet","env":{"API_KEY":"sk-live-123"},"apiKeyHelper":"/bin/leak"}`)
+	write(filepath.Join(".claude", "agents", "helper.md"), "---\nname: helper\n---\n")
+	write(filepath.Join(".claude", "skills", "proj-skill", "SKILL.md"), "---\nname: proj-skill\ndescription: project only\n---\n")
+	write(".mcp.json", `{"mcpServers":{"fs":{"command":"x"}}}`)
+	// Point the alpha transcript at the real directory.
+	path := filepath.Join(root, "projects", "C--fixture-alpha", alphaSession+".jsonl")
+	b, _ := os.ReadFile(path)
+	escaped := strings.ReplaceAll(real, `\`, `\\`)
+	os.WriteFile(path, []byte(strings.ReplaceAll(string(b), `C:\\fixture\\alpha`, escaped)), 0o644)
+
+	ix, st := newIndexer(t, root)
+	ctx := context.Background()
+	if err := ix.Scan(ctx); err != nil {
+		t.Fatal(err)
+	}
+	// Project config captured.
+	if s := queryStr(t, st, `SELECT agents || '|' || skills || '|' || mcp_servers || '|' || claude_md_bytes FROM project_config c JOIN projects p ON p.id = c.project_id WHERE p.encoded_name = 'C--fixture-alpha'`); s != `["helper"]|["proj-skill"]|["fs"]|10` {
+		t.Errorf("project_config = %q", s)
+	}
+	// Settings snapshot is redacted.
+	js := queryStr(t, st, `SELECT json FROM settings_snapshots WHERE scope = 'project'`)
+	if strings.Contains(js, "sk-live-123") || strings.Contains(js, "/bin/leak") || !strings.Contains(js, `"model":"sonnet"`) {
+		t.Errorf("snapshot not redacted: %s", js)
+	}
+	// Skills from every origin.
+	if n := queryInt(t, st, `SELECT COUNT(*) FROM skills WHERE origin = 'project'`); n != 1 {
+		t.Errorf("project skills = %d", n)
+	}
+	if n := queryInt(t, st, `SELECT COUNT(*) FROM skills WHERE origin = 'synced' AND name = 'skill-one'`); n != 1 {
+		t.Errorf("synced skill missing")
+	}
+	// Plugins, plans, history.
+	if n := queryInt(t, st, `SELECT COUNT(*) FROM plugins WHERE kind = 'marketplace'`); n != 1 {
+		t.Errorf("marketplaces = %d", n)
+	}
+	if s := queryStr(t, st, `SELECT name || '@' || source_ref || ' ' || version FROM plugins WHERE kind = 'installed'`); s != "fixture-plugin@claude-plugins-official 1.2.3" {
+		t.Errorf("installed plugin = %q", s)
+	}
+	if s := queryStr(t, st, `SELECT title FROM plans`); s != "Fixture Plan Title" {
+		t.Errorf("plan = %q", s)
+	}
+	if n := queryInt(t, st, `SELECT COUNT(*) FROM history_entries`); n != 3 {
+		t.Errorf("history rows = %d, want 3 (one malformed line skipped)", n)
+	}
+	// Unchanged history is not re-read; the cursor row survives pruning.
+	if err := ix.Scan(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if n := queryInt(t, st, `SELECT COUNT(*) FROM scan_state WHERE path = ?`, filepath.Join(root, "history.jsonl")); n != 1 {
+		t.Error("history scan cursor was pruned")
+	}
+	if n := queryInt(t, st, `SELECT COUNT(*) FROM history_entries`); n != 3 {
+		t.Errorf("history rows after rescan = %d", n)
+	}
+	// Project directory removed → config rows dropped, project remains.
+	if err := os.RemoveAll(real); err != nil {
+		t.Fatal(err)
+	}
+	if err := ix.Scan(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if n := queryInt(t, st, `SELECT COUNT(*) FROM project_config`); n != 0 {
+		t.Errorf("project_config rows after dir removal = %d", n)
+	}
+	if n := queryInt(t, st, `SELECT COUNT(*) FROM settings_snapshots`); n != 0 {
+		t.Errorf("settings_snapshots after dir removal = %d", n)
+	}
+	if n := queryInt(t, st, `SELECT COUNT(*) FROM projects WHERE encoded_name = 'C--fixture-alpha'`); n != 1 {
+		t.Error("project row must survive directory removal")
+	}
+}
+
 // TestStatusDoesNotBlockDuringScan: /healthz must answer while a scan runs.
 func TestStatusDoesNotBlockDuringScan(t *testing.T) {
 	root := copyFixture(t)
@@ -358,18 +445,23 @@ func TestStatusDoesNotBlockDuringScan(t *testing.T) {
 }
 
 func TestRedactSettings(t *testing.T) {
-	in := []byte(`{"model":"opus","env":{"ANTHROPIC_API_KEY":"sk-live","DEBUG":"1"},"apiKeyHelper":"/bin/helper","permissions":{"allow":["Read"]}}`)
+	in := []byte(`{"model":"opus","env":{"ANTHROPIC_API_KEY":"sk-live","DEBUG":"1"},"apiKeyHelper":"/bin/helper",
+		"permissions":{"allow":["Read"],"defaultMode":"auto"},
+		"hooks":{"PostToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"curl -H 'Authorization: Bearer tok-123'"}]}]},
+		"statusLine":{"type":"command","command":"secret-status.sh"},
+		"awsCredentialExport":"export AWS_SECRET=abc","sandbox":{"network":{"allowedDomains":["example.com"]}}}`)
 	out, ok := RedactSettings(in)
 	if !ok {
 		t.Fatal("valid JSON rejected")
 	}
 	s := string(out)
-	for _, leak := range []string{"sk-live", "/bin/helper", `"DEBUG":"1"`} {
+	for _, leak := range []string{"sk-live", "/bin/helper", `"DEBUG":"1"`, "tok-123", "secret-status.sh", "AWS_SECRET=abc"} {
 		if strings.Contains(s, leak) {
 			t.Errorf("leaked %q in %s", leak, s)
 		}
 	}
-	for _, keep := range []string{`"model":"opus"`, `"ANTHROPIC_API_KEY":"[redacted]"`, `"apiKeyHelper":"[redacted]"`, `"allow":["Read"]`} {
+	for _, keep := range []string{`"model":"opus"`, `"ANTHROPIC_API_KEY":"[redacted]"`, `"apiKeyHelper":"[redacted]"`, `"allow":["Read"]`,
+		`"defaultMode":"auto"`, `"matcher":"Bash"`, `"type":"command"`, `"command":"[redacted]"`, `"allowedDomains":["example.com"]`} {
 		if !strings.Contains(s, keep) {
 			t.Errorf("missing %q in %s", keep, s)
 		}

@@ -9,9 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 sessions, settings, skills, plugins, plans, history, system info) on
 **http://127.0.0.1:48273**. Read-only with respect to `~/.claude`; loopback only.
 
-**Current status: Phases 1–3 done (index, JSON API, dashboard, projects,
-sessions pages); Phase 4 (settings / skills / plugins / plans / history /
-system pages) next.** `docs/PLAN.md` is the source of
+**Current status: Phases 1–4 done — all pages exist (overview, projects,
+sessions, settings, skills & plugins, plans & history, system). Phase 5
+(fsnotify live updates) and Phase 6 (polish, README) remain.** `docs/PLAN.md` is the source of
 truth for architecture, data model, routes, the UI design system and phased
 delivery — build phase by phase from it; do not invent a different layout.
 `docs/PLAN.md` §7 tracks which phases are complete.
@@ -68,6 +68,9 @@ Rules that are easy to get wrong (each has a reason in the skills below):
 - Pure-Go SQLite only (`modernc.org/sqlite`); never `mattn/go-sqlite3`.
 - Port 48273, bind `127.0.0.1` only, exit with an error if the port is taken.
 - Never render raw transcript/prompt text in the UI; titles, counts, names only.
+  One sanctioned exception: the Plans & history page lists the first 160 runes
+  of each prompt from `history.jsonl` (`historyDisplayRunes`), because that is
+  what the page is for. Nothing else may show message content.
 
 ## Project agents and skills
 

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"claude-monitor/internal/claudedir"
 	"claude-monitor/internal/config"
@@ -64,7 +65,9 @@ func run() error {
 	}()
 
 	log.Info("starting", "claude_dir", cfg.ClaudeDir, "db", cfg.DBPath, "scan_interval", cfg.ScanInterval)
-	err = web.New(st, ix, log).ListenAndServe(ctx, cfg.Addr)
+	srv := web.New(st, ix, log)
+	srv.SetInfo(web.Info{ClaudeDir: cfg.ClaudeDir, DBPath: cfg.DBPath, ScanInterval: cfg.ScanInterval, StartedAt: time.Now()})
+	err = srv.ListenAndServe(ctx, cfg.Addr)
 	stop()    // a listen failure must also stop the indexer
 	wg.Wait() // let an in-flight transaction roll back before the DB closes
 	return err
