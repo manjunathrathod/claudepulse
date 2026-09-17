@@ -111,7 +111,7 @@ func TestSystemAndLive(t *testing.T) {
 
 func TestRefusesNonLoopback(t *testing.T) {
 	s := New(nil, nil, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	for _, addr := range []string{"0.0.0.0:48273", ":48273", "192.168.1.10:48273", "localhost:48273"} {
+	for _, addr := range []string{"0.0.0.0:3333", ":3333", "192.168.1.10:3333", "localhost:3333"} {
 		if err := s.ListenAndServe(context.Background(), addr); err == nil || !strings.Contains(err.Error(), "loopback") {
 			t.Errorf("%s: err = %v, want loopback refusal", addr, err)
 		}

@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-// DefaultPort is deliberately obscure: unassigned by IANA and not used by any
-// common developer tool (3000/5173/8000/8080/8888/9090 are all avoided).
-const DefaultPort = "48273"
+// DefaultPort is 3333 (chosen by the user). A busy port is a hard error, never
+// a silent fallback.
+const DefaultPort = "3333"
 
 // Config is the fully resolved runtime configuration.
 type Config struct {

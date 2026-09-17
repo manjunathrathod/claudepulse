@@ -4,7 +4,7 @@
 
 **Track usage. Understand limits.** A local dashboard for your Claude Code usage. It watches `~/.claude`, indexes
 every session transcript into a SQLite database, and serves a single-binary web
-UI on **http://127.0.0.1:48273** — tokens per day and per model, projects,
+UI on **http://127.0.0.1:3333** — tokens per day and per model, projects,
 sessions with timelines, tool usage, subagents, settings, skills & plugins,
 plans, prompt history, your plan's rate-limit usage, and system health.
 
@@ -20,7 +20,7 @@ no Node.
 ```bash
 go build -o bin/claudepulse.exe ./cmd/claudepulse
 ./bin/claudepulse.exe
-# → open http://127.0.0.1:48273
+# → open http://127.0.0.1:3333
 ```
 
 The first run indexes your whole history (≈150 MB of transcripts takes about
@@ -35,7 +35,7 @@ run with `-reset-db`) to re-index from scratch.
 
 | Flag | Env | Default | Meaning |
 |---|---|---|---|
-| `-addr` | `CP_ADDR` | `127.0.0.1:48273` | Listen address. Loopback IPs only; a busy port is a hard error. |
+| `-addr` | `CP_ADDR` | `127.0.0.1:3333` | Listen address. Loopback IPs only; a busy port is a hard error. |
 | `-claude-dir` | `CP_CLAUDE_DIR` | `~/.claude` | Directory to monitor. |
 | `-db` | `CP_DB` | `data/claudepulse.db` | SQLite file. Must not be inside `-claude-dir`. |
 | `-scan-interval` | `CP_SCAN_INTERVAL` | `30s` | Safety-net rescan cadence. |

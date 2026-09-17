@@ -23,7 +23,7 @@ Brief: dark, glassmorphism cards, blue + purple accents, minimal, desktop-first.
   description via `{{template "help.html" "…"}}` (a `?` badge with `title`) or a
   `title` attribute. Keep them to one sentence, no jargon.
 - Visual verification without the Chrome extension: headless Edge
-  `msedge --headless=new --screenshot=… --window-size=1440,1750 http://127.0.0.1:48273/`.
+  `msedge --headless=new --screenshot=… --window-size=1440,1750 http://127.0.0.1:3333/`.
 
 Verified during Phase 1: Claude's own `stats-cache.json` sums usage per transcript
 line (no dedupe), so its token figures run ~2–3× above the deduped API accounting
@@ -70,7 +70,7 @@ Full reference: `.claude/skills/claude-dir-format/SKILL.md`. Highlights:
 │  (net/http mux, html/template pages, htmx partials, /api/v1 JSON)          │
 │  web/ (templates, app.css, vendored htmx + Chart.js) — //go:embed          │
 └────────────────────────────────────────────────────────────────────────────┘
-        ▲ reads only                                   ▲ http://127.0.0.1:48273
+        ▲ reads only                                   ▲ http://127.0.0.1:3333
    %USERPROFILE%\.claude                              browser
 ```
 
@@ -99,7 +99,7 @@ docs/                           This plan + ADRs
 | UI | `html/template` + **htmx** + **Chart.js**, vendored, embedded | No Node build step; one binary; matches "local tool" scope |
 | Styling | Single `app.css`, CSS variables, dark-first with light override | User's Claude theme is dark |
 | Logging | `log/slog` | stdlib |
-| Port | **48273**, loopback only | Unassigned by IANA, unused by common dev tools; fail loudly if busy |
+| Port | **3333**, loopback only | User's choice (originally 48273); fail loudly if busy |
 | Config | flags > env (`CP_*`) > defaults | See `run-app` skill |
 
 Only two external modules: `modernc.org/sqlite`, `github.com/fsnotify/fsnotify`.

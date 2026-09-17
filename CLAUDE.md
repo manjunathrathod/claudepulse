@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 `ClaudePulse` — a local, single-binary Go web app that indexes the user's
 `~/.claude` directory into SQLite and serves a dashboard (usage, projects,
 sessions, settings, skills, plugins, plans, history, system info) on
-**http://127.0.0.1:48273**. Read-only with respect to `~/.claude`; loopback only.
+**http://127.0.0.1:3333**. Read-only with respect to `~/.claude`; loopback only.
 
 **Current status: v1 complete — all six phases in `docs/PLAN.md` §7 are done.**
 Further work should be small, reviewed changes; keep the phase discipline
@@ -26,12 +26,12 @@ for ad-hoc JSON).
 
 ```bash
 go build -ldflags "-X main.version=v1.0.0" -o bin/claudepulse.exe ./cmd/claudepulse   # build; version shows on /system
-go run ./cmd/claudepulse                               # dev run on :48273
+go run ./cmd/claudepulse                               # dev run on :3333
 go run ./cmd/claudepulse -claude-dir ./testdata/claude-home -db ./data/test.db  # run on fixture
 go vet ./... && gofmt -l .                                # lint (gofmt must print nothing)
 go test ./... -count=1                                    # all tests (no -race on 386)
 go test ./internal/indexer/ -run TestGoldenNumbers -v      # single test (the dedupe guard)
-curl -s http://127.0.0.1:48273/healthz                    # smoke check
+curl -s http://127.0.0.1:3333/healthz                    # smoke check
 ```
 
 Config: flags `-addr -claude-dir -db -scan-interval -log-level` or env `CP_ADDR`,
@@ -70,7 +70,7 @@ Rules that are easy to get wrong (each has a reason in the skills below):
 - Real project path comes from transcript `cwd`, not from decoding the
   `projects/<encoded>` dir name (encoding is lossy).
 - Pure-Go SQLite only (`modernc.org/sqlite`); never `mattn/go-sqlite3`.
-- Port 48273, bind `127.0.0.1` only, exit with an error if the port is taken.
+- Port 3333, bind `127.0.0.1` only, exit with an error if the port is taken.
 - Never render raw transcript/prompt text in the UI; titles, counts, names only.
   One sanctioned exception: the Plans & history page lists the first 160 runes
   of each prompt from `history.jsonl` (`historyDisplayRunes`), because that is

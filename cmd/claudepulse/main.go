@@ -1,5 +1,5 @@
 // Command claudepulse (ClaudePulse) indexes a Claude Code home directory (~/.claude)
-// into SQLite and serves a local dashboard on http://127.0.0.1:48273.
+// into SQLite and serves a local dashboard on http://127.0.0.1:3333.
 package main
 
 import (

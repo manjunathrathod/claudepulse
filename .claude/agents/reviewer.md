@@ -16,7 +16,7 @@ Checklist specific to this project:
    transaction? Is the shrink/rotation case handled?
 4. Are unknown JSONL `type` values and malformed lines tolerated without panics?
 5. Is every SQL statement parameterised? Are upserts idempotent?
-6. Does the server bind to loopback only? Is the port configurable with 48273 as
+6. Does the server bind to loopback only? Is the port configurable with 3333 as
    the default, and does a busy port fail loudly?
 7. Are the templates free of raw transcript content (the only exception is the
    truncated prompt list on /plans)? Is user-controlled text passed through

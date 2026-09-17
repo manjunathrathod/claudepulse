@@ -17,7 +17,7 @@ Non-negotiables:
 - Dedupe assistant usage by `message.id`; tolerate unknown JSONL line types;
   never panic on a malformed line — log at debug and continue.
 - Deny-list `.credentials.json` and `sessions/*.key` at the filesystem-walk layer.
-- Listen on loopback only. Port comes from config; default 48273.
+- Listen on loopback only. Port comes from config; default 3333.
 - Every exported function that parses input gets a table-driven test with a
   scrubbed fixture under `testdata/`.
 - Finish with `gofmt -l .`, `go vet ./...`, `go test ./... -count=1` and report the
