@@ -1,0 +1,7 @@
+{{define "content"}}
+<section class="card empty tall">
+  <div class="err-code mono">{{.Page.Code}}</div>
+  <div>{{.Page.Message}}{{if .Page.Path}} <span class="mono">{{.Page.Path}}</span>{{end}}</div>
+  <a class="link mt-sm" href="/">Back to overview</a>
+</section>
+{{end}}

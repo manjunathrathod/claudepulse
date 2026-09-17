@@ -9,10 +9,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 sessions, settings, skills, plugins, plans, history, system info) on
 **http://127.0.0.1:48273**. Read-only with respect to `~/.claude`; loopback only.
 
-**Current status: Phase 1 (core index + JSON API) done; Phase 2 (dashboard UI)
-next.** `docs/PLAN.md` is the source of truth for architecture, data model,
-routes and phased delivery — build phase by phase from it; do not invent a
-different layout. `docs/PLAN.md` §7 tracks which phases are complete.
+**Current status: Phases 1–2 done (index, JSON API, dashboard + projects
+pages); Phase 3 (sessions list/detail) next.** `docs/PLAN.md` is the source of
+truth for architecture, data model, routes, the UI design system and phased
+delivery — build phase by phase from it; do not invent a different layout.
+`docs/PLAN.md` §7 tracks which phases are complete.
 
 ## Commands
 
@@ -42,8 +43,17 @@ file kind + deny-list) → `internal/indexer` (full scan on start, then fsnotify
 ticker; incremental by byte offset via `scan_state`; rebuilds rollup tables) →
 `internal/store` (SQLite via `modernc.org/sqlite`, embedded SQL migrations, all
 queries live here) → `internal/web` (stdlib mux, `html/template` pages, htmx
-partials, `/api/v1` JSON) with `web/` embedded via `//go:embed`. The indexer is
-the only writer; handlers only read.
+partials, `/api/v1` JSON). UI assets live in `web/` and are embedded by the
+tiny `webassets` package (`web/assets.go`) because `//go:embed` cannot reach
+outside a package directory. The indexer is the only writer; handlers only read.
+
+UI conventions: one template set per page (`base.html` + `partials/*` + page),
+view models built in `internal/web/pages.go`, formatting via template funcs in
+`templates.go` (`compact`, `comma`, `duration`, `ago`, `pctNum`…). Chart data is
+emitted as `<script type="application/json">` and read by `web/static/app.js`;
+never compute numbers in JS. Model→colour mapping is fixed and validated — see
+PLAN.md "UI design system" before touching it. Verify visually with headless
+Edge screenshots (command in PLAN.md).
 
 Rules that are easy to get wrong (each has a reason in the skills below):
 

@@ -1,0 +1,5 @@
+<div id="index-status" class="status-pill{{if .Scanning}} is-busy{{end}}{{if .Err}} is-error{{end}}" hx-get="/partials/index" hx-trigger="every 15s" hx-swap="outerHTML"
+     title="{{if .Err}}Last scan failed: {{.Err}}{{else}}Last scan {{.Files}} files, {{.LinesRead}} lines in {{.Duration}}{{end}}">
+  <span class="dot" aria-hidden="true"></span>
+  {{if .Scanning}}Indexing…{{else if .Err}}Scan error{{else}}Indexed · {{.TotalSessions}} sessions{{end}}
+</div>

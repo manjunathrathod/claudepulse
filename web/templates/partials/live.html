@@ -1,0 +1,21 @@
+<div id="live-sessions" hx-get="/partials/live" hx-trigger="every 10s" hx-swap="outerHTML">
+  {{if not .}}
+  <div class="empty">
+    <span class="empty-ico" aria-hidden="true">◌</span>
+    <div>No Claude Code process is running right now.</div>
+  </div>
+  {{else}}
+  <ul class="live-list">
+    {{range .}}
+    <li class="live-item">
+      <span class="live-pulse" aria-hidden="true"></span>
+      <div class="live-body">
+        <div class="live-name">{{if .Name}}{{.Name}}{{else}}pid {{.PID}}{{end}}</div>
+        <div class="live-meta mono" title="{{.CWD}}">{{basename .CWD}} · started {{ago .StartedAt}}{{if .Version}} · v{{.Version}}{{end}}</div>
+      </div>
+      <span class="chip">pid {{.PID}}</span>
+    </li>
+    {{end}}
+  </ul>
+  {{end}}
+</div>

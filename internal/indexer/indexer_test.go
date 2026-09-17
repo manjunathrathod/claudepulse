@@ -126,7 +126,7 @@ func TestGoldenNumbers(t *testing.T) {
 	}
 
 	// Session facts.
-	if s := queryStr(t, st, `SELECT title FROM sessions WHERE id = ?`, alphaSession); s != "Alpha fixture session" {
+	if s := queryStr(t, st, `SELECT title FROM sessions WHERE id = ?`, alphaSession); s != `Alpha fixture session <b>&"x"</b>` {
 		t.Errorf("alpha title = %q", s)
 	}
 	if s := queryStr(t, st, `SELECT title FROM sessions WHERE id = ?`, betaSession); s != "Beta fixture session" {

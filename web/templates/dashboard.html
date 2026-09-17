@@ -1,0 +1,192 @@
+{{define "content"}}
+{{$p := .Page}}
+<section class="kpi-grid" aria-label="Key figures">
+  {{range $p.KPIs}}
+  <div class="card kpi{{if .Accent}} kpi-{{.Accent}}{{end}}">
+    <div class="kpi-label">{{.Label}}</div>
+    <div class="kpi-value" title="{{.Hint}}">{{.Value}}</div>
+    <div class="kpi-hint">{{.Hint}}</div>
+  </div>
+  {{end}}
+</section>
+
+<section class="grid grid-2-1">
+  <div class="stack">
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title">Output tokens per day</h2>
+        <p class="card-sub">Generated tokens by model, deduped per API message</p>
+      </div>
+      <div class="seg" role="group" aria-label="Time range">
+        <a class="seg-item{{if eq $.Days 30}} is-active{{end}}" href="/?days=30">30d</a>
+        <a class="seg-item{{if eq $.Days 90}} is-active{{end}}" href="/?days=90">90d</a>
+        <a class="seg-item{{if eq $.Days 0}} is-active{{end}}" href="/?days=0">All</a>
+      </div>
+    </div>
+    {{if $p.Daily.Datasets}}
+    <div class="chart-wrap"><canvas id="daily-chart" height="260" role="img" aria-label="Daily output tokens by model"></canvas></div>
+    <script type="application/json" id="daily-data">{{json $p.Daily}}</script>
+    {{else}}
+    <div class="empty tall">No activity in this window.</div>
+    {{end}}
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title">Recent sessions</h2>
+        <p class="card-sub">Newest first</p>
+      </div>
+    </div>
+    {{if $p.Recent}}
+    <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Session</th><th>Project</th><th class="num">Prompts</th><th class="num">Tools</th><th class="num">Output</th><th class="num">Duration</th><th class="num">When</th></tr></thead>
+      <tbody>
+      {{range $p.Recent}}
+      <tr>
+        <td class="cell-title"><span title="{{.ID}}">{{if .Title}}{{truncate .Title 56}}{{else}}<span class="dim">untitled</span>{{end}}</span>
+          {{range split .Models ","}}{{if .}}<span class="swatch sm" style="--c:{{seriesColor .}}" title="{{modelLabel .}}"></span>{{end}}{{end}}</td>
+        <td><a class="link" href="/projects/{{.ProjectID}}" title="{{.ProjectPath}}">{{if .ProjectPath}}{{basename .ProjectPath}}{{else}}{{truncate .ProjectName 28}}{{end}}</a></td>
+        <td class="num mono">{{.Prompts}}</td>
+        <td class="num mono">{{.ToolCalls}}</td>
+        <td class="num mono" title="{{comma .OutputTokens}}">{{compact .OutputTokens}}</td>
+        <td class="num mono">{{duration .DurationMS}}</td>
+        <td class="num dim" title="{{datetime .StartedAt}}">{{ago .StartedAt}}</td>
+      </tr>
+      {{end}}
+      </tbody>
+    </table>
+    </div>
+    {{else}}
+    <div class="empty tall">No sessions indexed yet.</div>
+    {{end}}
+  </div>
+
+  </div>
+
+  <div class="stack">
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title">Models</h2>
+        <p class="card-sub">Share of output tokens</p>
+      </div>
+    </div>
+    {{if $p.Models}}
+    <ul class="meter-list">
+      {{range $p.Models}}
+      <li class="meter">
+        <div class="meter-row">
+          <span class="swatch" style="--c:{{.Color}}" aria-hidden="true"></span>
+          <span class="meter-name">{{.Label}}</span>
+          <span class="meter-val mono" title="{{comma .Output}} tokens · {{comma .Messages}} messages">{{compact .Output}} · {{.Share}}</span>
+        </div>
+        <div class="meter-track"><div class="meter-fill" style="width:{{.Width}}%;--c:{{.Color}}"></div></div>
+      </li>
+      {{end}}
+    </ul>
+    {{else}}
+    <div class="empty">No model usage yet.</div>
+    {{end}}
+
+    <div class="card-head mt">
+      <div>
+        <h2 class="card-title">Top tools</h2>
+        <p class="card-sub">Calls across all sessions</p>
+      </div>
+    </div>
+    <ul class="meter-list compact">
+      {{range $p.Tools}}
+      <li class="meter">
+        <div class="meter-row">
+          <span class="meter-name mono">{{.Name}}</span>
+          <span class="meter-val mono">{{comma .Count}}</span>
+        </div>
+        <div class="meter-track"><div class="meter-fill accent" style="width:{{.Width}}%"></div></div>
+      </li>
+      {{else}}
+      <li class="empty">No tool calls yet.</li>
+      {{end}}
+    </ul>
+  </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h2 class="card-title">Live sessions</h2>
+          <p class="card-sub">Refreshes every 10 s</p>
+        </div>
+      </div>
+      {{template "live.html" $p.Live}}
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h2 class="card-title">Activity by hour</h2>
+          <p class="card-sub">Prompts sent, UTC</p>
+        </div>
+      </div>
+      <div class="hours" role="img" aria-label="Prompts per hour of day">
+        {{range $i, $h := $p.Hours}}
+        <div class="hour" title="{{$i}}:00 UTC · {{$h}} prompts">
+          <div class="hour-bar" style="height:{{pctNum $h $p.HoursMax}}%"></div>
+        </div>
+        {{end}}
+      </div>
+      <div class="hours-axis mono"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="grid grid-3">
+  <div class="card">
+    <div class="card-head"><div><h2 class="card-title">System</h2><p class="card-sub">Claude Code install</p></div></div>
+    <dl class="kv">
+      <div><dt>Version</dt><dd class="mono">{{if $.CLIVersion}}{{$.CLIVersion}}{{else}}—{{end}}</dd></div>
+      {{with $p.LastUpdate}}
+      <div><dt>Last update</dt><dd>{{ago .Timestamp}} <span class="dim">{{.VersionFrom}} → {{.VersionTo}}</span> {{if eq .Status "success"}}<span class="chip ok">ok</span>{{else}}<span class="chip warn">{{.Status}}</span>{{end}}</dd></div>
+      {{end}}
+      <div><dt>Last cleanup</dt><dd>{{if $p.LastCleanup}}{{ago $p.LastCleanup}}{{else}}—{{end}}</dd></div>
+      <div><dt>Index</dt><dd>{{$.Index.Files}} files · {{comma (int64 $.Index.LinesRead)}} lines · {{$.Index.Duration}}{{if $.Index.Malformed}} · <span class="warn-text">{{$.Index.Malformed}} malformed</span>{{end}}</dd></div>
+    </dl>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div><h2 class="card-title">Disk usage</h2><p class="card-sub">{{bytes $p.DirsTotal}} in ~/.claude</p></div></div>
+    <ul class="meter-list compact">
+      {{range $p.Dirs}}
+      <li class="meter">
+        <div class="meter-row"><span class="meter-name mono">{{.Name}}</span><span class="meter-val mono">{{bytes .Bytes}}</span></div>
+        <div class="meter-track"><div class="meter-fill purple" style="width:{{pctNum .Bytes $p.DirsTotal}}%"></div></div>
+      </li>
+      {{else}}
+      <li class="empty">Not computed yet.</li>
+      {{end}}
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div><h2 class="card-title">Claude's own stats</h2><p class="card-sub">From stats-cache.json{{with $p.Stats}} · computed {{.LastComputedDate}}{{end}}</p></div></div>
+    {{with $p.Stats}}
+    <dl class="kv">
+      <div><dt>Sessions</dt><dd class="mono">{{comma (int64 .TotalSessions)}}</dd></div>
+      <div><dt>Messages</dt><dd class="mono">{{comma (int64 .TotalMessages)}}</dd></div>
+      <div><dt>First session</dt><dd>{{date .FirstSessionDate}}</dd></div>
+      {{with .LongestSession}}<div><dt>Longest session</dt><dd class="mono">{{duration .DurationMS}} <span class="dim">· {{.MessageCount}} msgs</span></dd></div>{{end}}
+      {{range $m, $u := .ModelUsage}}
+      <div><dt>{{modelLabel $m}} output</dt><dd class="mono" title="Claude Code sums every transcript line; this dashboard dedupes per API message">{{compact $u.OutputTokens}}</dd></div>
+      {{end}}
+    </dl>
+    <p class="note">Claude Code counts each streamed line, so these run higher than the deduped figures above.</p>
+    {{else}}
+    <div class="empty">stats-cache.json not found.</div>
+    {{end}}
+  </div>
+</section>
+
+<script src="{{asset "vendor/chart.umd.min.js"}}" defer></script>
+<script src="{{asset "app.js"}}" defer></script>
+{{end}}

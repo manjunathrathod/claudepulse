@@ -1,0 +1,47 @@
+{{define "content"}}
+{{$p := .Page}}
+<section class="kpi-grid kpi-grid-4" aria-label="Project totals">
+  <div class="card kpi kpi-blue"><div class="kpi-label">Projects</div><div class="kpi-value">{{len $p.Projects}}</div><div class="kpi-hint">{{if $p.Orphaned}}{{$p.Orphaned}} no longer on disk{{else}}all present on disk{{end}}</div></div>
+  <div class="card kpi"><div class="kpi-label">Sessions</div><div class="kpi-value">{{comma $p.TotalSessions}}</div><div class="kpi-hint">indexed transcripts</div></div>
+  <div class="card kpi"><div class="kpi-label">Tool calls</div><div class="kpi-value">{{comma $p.TotalToolCalls}}</div><div class="kpi-hint">across every project</div></div>
+  <div class="card kpi kpi-purple"><div class="kpi-label">Output tokens</div><div class="kpi-value" title="{{comma $p.TotalOutput}}">{{compact $p.TotalOutput}}</div><div class="kpi-hint">deduped per API message</div></div>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <div><h2 class="card-title">All projects</h2><p class="card-sub">Most recently active first</p></div>
+  </div>
+  {{if $p.Projects}}
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr>
+      <th>Project</th><th>Setup</th><th class="num">Sessions</th><th class="num">Prompts</th><th class="num">Tools</th><th class="num">Output</th><th class="num">Last active</th>
+    </tr></thead>
+    <tbody>
+    {{range $p.Projects}}
+    <tr>
+      <td class="cell-title">
+        <a class="link strong" href="/projects/{{.ID}}">{{if .RealPath}}{{basename .RealPath}}{{else}}{{truncate .EncodedName 40}}{{end}}</a>
+        <div class="dim mono sm" title="{{if .RealPath}}{{.RealPath}}{{else}}{{.EncodedName}}{{end}}">{{if .RealPath}}{{.RealPath}}{{else}}{{.EncodedName}}{{end}}</div>
+      </td>
+      <td class="chips">
+        {{if and .RealPath (not .ExistsOnDisk)}}<span class="chip warn" title="Directory no longer exists">orphaned</span>{{end}}
+        {{if .HasClaudeMD}}<span class="chip">CLAUDE.md</span>{{end}}
+        {{if .HasProjectSettings}}<span class="chip">settings</span>{{end}}
+        {{if .MemoryFiles}}<span class="chip purple" title="{{.MemoryFiles}} memory files">memory {{.MemoryFiles}}</span>{{end}}
+      </td>
+      <td class="num mono">{{.Sessions}}</td>
+      <td class="num mono">{{comma .Prompts}}</td>
+      <td class="num mono">{{comma .ToolCalls}}</td>
+      <td class="num mono" title="{{comma .OutputTokens}}">{{compact .OutputTokens}}</td>
+      <td class="num dim" title="{{datetime .LastActivity}}">{{ago .LastActivity}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+  {{else}}
+  <div class="empty tall">No projects found under ~/.claude/projects.</div>
+  {{end}}
+</section>
+{{end}}

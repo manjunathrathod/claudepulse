@@ -1,0 +1,91 @@
+{{define "content"}}
+{{$p := .Page}}
+{{$pr := $p.Project}}
+<div class="crumbs"><a class="link" href="/projects">Projects</a><span class="crumb-sep">/</span><span>{{$.Title}}</span></div>
+
+<section class="card hero">
+  <div class="hero-main">
+    <div class="hero-path mono" title="{{if $pr.RealPath}}{{$pr.RealPath}}{{else}}{{$pr.EncodedName}}{{end}}">{{if $pr.RealPath}}{{$pr.RealPath}}{{else}}{{$pr.EncodedName}}{{end}}</div>
+    <div class="chips mt-sm">
+      {{if and $pr.RealPath (not $pr.ExistsOnDisk)}}<span class="chip warn">directory missing</span>{{else if $pr.RealPath}}<span class="chip ok">on disk</span>{{end}}
+      {{if $pr.HasClaudeMD}}<span class="chip">CLAUDE.md</span>{{end}}
+      {{if $pr.HasProjectSettings}}<span class="chip">.claude/settings</span>{{end}}
+      {{if $pr.MemoryFiles}}<span class="chip purple">memory · {{$pr.MemoryFiles}} files</span>{{end}}
+      <span class="chip dim-chip mono" title="~/.claude/projects/{{$pr.EncodedName}}">{{truncate $pr.EncodedName 48}}</span>
+    </div>
+  </div>
+  <dl class="hero-stats">
+    <div><dt>Sessions</dt><dd>{{$pr.Sessions}}</dd></div>
+    <div><dt>Prompts</dt><dd>{{comma $pr.Prompts}}</dd></div>
+    <div><dt>Tool calls</dt><dd>{{comma $pr.ToolCalls}}</dd></div>
+    <div><dt>Output</dt><dd title="{{comma $pr.OutputTokens}}">{{compact $pr.OutputTokens}}</dd></div>
+    <div><dt>Time</dt><dd>{{duration $p.Duration}}</dd></div>
+    <div><dt>First · last</dt><dd class="sm">{{date $pr.FirstActivity}} · {{ago $pr.LastActivity}}</dd></div>
+  </dl>
+</section>
+
+<section class="grid grid-2-1">
+  <div class="card">
+    <div class="card-head"><div><h2 class="card-title">Sessions</h2><p class="card-sub">Newest first</p></div></div>
+    {{if $p.Sessions}}
+    <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Session</th><th class="num">Prompts</th><th class="num">Tools</th><th class="num">Agents</th><th class="num">Output</th><th class="num">Duration</th><th class="num">Started</th></tr></thead>
+      <tbody>
+      {{range $p.Sessions}}
+      <tr>
+        <td class="cell-title">
+          <span title="{{.ID}}">{{if .Title}}{{truncate .Title 64}}{{else}}<span class="dim">untitled</span>{{end}}</span>
+          {{range split .Models ","}}{{if .}}<span class="swatch sm" style="--c:{{seriesColor .}}" title="{{modelLabel .}}"></span>{{end}}{{end}}
+          <div class="dim mono sm">{{truncate .ID 8}}{{if .CLIVersion}} · v{{.CLIVersion}}{{end}}</div>
+        </td>
+        <td class="num mono">{{.Prompts}}</td>
+        <td class="num mono">{{.ToolCalls}}</td>
+        <td class="num mono">{{if .Subagents}}{{.Subagents}}{{else}}<span class="dim">–</span>{{end}}</td>
+        <td class="num mono" title="{{comma .OutputTokens}}">{{compact .OutputTokens}}</td>
+        <td class="num mono">{{duration .DurationMS}}</td>
+        <td class="num dim" title="{{datetime .StartedAt}}">{{ago .StartedAt}}</td>
+      </tr>
+      {{end}}
+      </tbody>
+    </table>
+    </div>
+    {{else}}
+    <div class="empty tall">No transcripts for this project (memory-only).</div>
+    {{end}}
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><div><h2 class="card-title">Models</h2><p class="card-sub">Share of output tokens</p></div></div>
+      <ul class="meter-list">
+        {{range $p.Models}}
+        <li class="meter">
+          <div class="meter-row">
+            <span class="swatch" style="--c:{{.Color}}" aria-hidden="true"></span>
+            <span class="meter-name">{{.Label}}</span>
+            <span class="meter-val mono" title="{{comma .Output}} tokens · {{comma .Messages}} messages">{{compact .Output}} · {{.Share}}</span>
+          </div>
+          <div class="meter-track"><div class="meter-fill" style="width:{{.Width}}%;--c:{{.Color}}"></div></div>
+        </li>
+        {{else}}
+        <li class="empty">No model usage.</li>
+        {{end}}
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><h2 class="card-title">Top tools</h2><p class="card-sub">In this project</p></div></div>
+      <ul class="meter-list compact">
+        {{range $p.Tools}}
+        <li class="meter">
+          <div class="meter-row"><span class="meter-name mono">{{.Name}}</span><span class="meter-val mono">{{comma .Count}}</span></div>
+          <div class="meter-track"><div class="meter-fill accent" style="width:{{.Width}}%"></div></div>
+        </li>
+        {{else}}
+        <li class="empty">No tool calls.</li>
+        {{end}}
+      </ul>
+    </div>
+  </div>
+</section>
+{{end}}

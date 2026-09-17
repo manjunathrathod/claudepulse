@@ -1,7 +1,26 @@
 # claude-monitor — Implementation Plan
 
-Status: **Phase 1 complete (core index + JSON API). Phase 2 (dashboard UI) next.**
-Last updated 2026-09-17.
+Status: **Phases 1–2 complete (core index, JSON API, dashboard + projects UI).
+Phase 3 (sessions list + detail) next.** Last updated 2026-09-17.
+
+### UI design system (Phase 2, fixed)
+
+Brief: dark, glassmorphism cards, blue + purple accents, minimal, desktop-first.
+- Tokens live in `web/static/app.css :root` (dark) with a `[data-theme="light"]`
+  override. UI accents: `--accent #4f8ff7` (blue), `--accent-2 #a78bfa` (purple).
+- **Chart series are not the UI accents.** Blue↔violet fails CVD separation
+  (ΔE 1.9 protan), so data uses the validated categorical set
+  blue `#3987e5` / magenta `#d55181` / amber `#c98500` / gray `#6b7186` for
+  opus / sonnet / haiku / other — mapped by model *name* in
+  `internal/web/templates.go` so colour follows the entity. Re-run the dataviz
+  validator (`--pairs all --mode dark --surface #0f1117`) before changing it.
+- Charts: Chart.js only for the stacked daily bar (thin bars ≤22px, 4px rounded
+  ends, 2px surface gap, hairline grid, legend only for ≥2 series). Everything
+  else (model share, tools, disk, hour-of-day) is CSS meters — no JS needed.
+- Fonts: Inter + JetBrains Mono via Google Fonts (falls back to system fonts
+  offline). htmx polls `/partials/live` (10 s) and `/partials/index` (15 s).
+- Visual verification without the Chrome extension: headless Edge
+  `msedge --headless=new --screenshot=… --window-size=1440,1750 http://127.0.0.1:48273/`.
 
 Verified during Phase 1: Claude's own `stats-cache.json` sums usage per transcript
 line (no dedupe), so its token figures run ~2–3× above the deduped API accounting
@@ -169,7 +188,7 @@ JSON API (`/api/v1/...`) mirrors the above for charts/htmx partials: `summary`,
 |---|---|---|
 | **0** | Repo init, agents, skills, plan | ✅ 2026-09-17 |
 | **1** Core index | `config`, `claudedir` decoders, `jsonl` reader, `store` + migrations, `indexer` full + incremental scan, `/healthz`, `/api/v1/{summary,daily,live,system}` | ✅ 2026-09-17 — golden-number tests on fixture; real `~/.claude` (157 MB, 50 files) indexes in 1.5 s |
-| **2** Dashboard + projects | `base.html`, `/`, `/projects`, `/projects/{id}`, Chart.js daily + model charts | Renders real data in browser at :48273 |
+| **2** Dashboard + projects | `base.html`, `/`, `/projects`, `/projects/{id}`, Chart.js daily chart, CSS meters, htmx live/index partials | ✅ 2026-09-17 — verified via headless-Edge screenshots against real data |
 | **3** Sessions | `/sessions`, `/sessions/{id}`, tool-call & subagent breakdown | Longest session (697 msgs) page loads < 200 ms |
 | **4** Settings / skills / plugins / plans / history / system pages | All remaining routes | Every top-level `~/.claude` item is represented somewhere |
 | **5** Live | fsnotify watcher, incremental resume, live-sessions widget polling via htmx | Start a new Claude session → appears on dashboard within 10 s without restart |

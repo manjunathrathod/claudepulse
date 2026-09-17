@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"log/slog"
 	"net"
 	"net/http"
@@ -19,15 +20,18 @@ import (
 
 // Server wires the mux to the store and indexer.
 type Server struct {
-	st  *store.Store
-	ix  *indexer.Indexer
-	log *slog.Logger
-	mux *http.ServeMux
+	st       *store.Store
+	ix       *indexer.Indexer
+	log      *slog.Logger
+	mux      *http.ServeMux
+	pages    pages
+	partials *template.Template
+	addr     string
 }
 
 // New builds the router.
 func New(st *store.Store, ix *indexer.Indexer, log *slog.Logger) *Server {
-	s := &Server{st: st, ix: ix, log: log, mux: http.NewServeMux()}
+	s := &Server{st: st, ix: ix, log: log, mux: http.NewServeMux(), pages: loadPages(), partials: loadPartials()}
 	s.routes()
 	return s
 }
@@ -38,7 +42,21 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/v1/daily", s.handleDaily)
 	s.mux.HandleFunc("GET /api/v1/live", s.handleLive)
 	s.mux.HandleFunc("GET /api/v1/system", s.handleSystem)
-	s.mux.HandleFunc("GET /{$}", s.handleIndexPlaceholder)
+
+	s.mux.HandleFunc("GET /{$}", s.handleDashboard)
+	s.mux.HandleFunc("GET /projects", s.handleProjects)
+	s.mux.HandleFunc("GET /projects/{id}", s.handleProject)
+	s.mux.HandleFunc("GET /partials/live", s.handleLivePartial)
+	s.mux.HandleFunc("GET /partials/index", s.handleIndexPartial)
+	s.mux.Handle("GET /static/", http.StripPrefix("/static/", cacheStatic(http.FileServer(staticFS()))))
+	s.mux.HandleFunc("/", s.notFound)
+}
+
+func cacheStatic(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+		next.ServeHTTP(w, r)
+	})
 }
 
 // Handler returns the root handler (with logging middleware).
@@ -62,6 +80,7 @@ func (s *Server) ListenAndServe(ctx context.Context, addr string) error {
 	if err != nil {
 		return fmt.Errorf("cannot listen on %s (is another claude-monitor running?): %w", addr, err)
 	}
+	s.addr = addr
 	srv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 10 * time.Second}
 	go func() {
 		<-ctx.Done()
@@ -215,16 +234,6 @@ func (s *Server) handleSystem(w http.ResponseWriter, r *http.Request) {
 		out["last_update"] = json.RawMessage(raw)
 	}
 	s.writeJSON(w, http.StatusOK, out)
-}
-
-// handleIndexPlaceholder is replaced by the real dashboard in Phase 2.
-func (s *Server) handleIndexPlaceholder(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, `<!doctype html><title>claude-monitor</title><body style="font-family:system-ui;background:#111;color:#ddd;padding:2rem">
-<h1>claude-monitor</h1><p>Dashboard coming in Phase 2. JSON endpoints:</p>
-<ul><li><a href="/healthz">/healthz</a></li><li><a href="/api/v1/summary">/api/v1/summary</a></li>
-<li><a href="/api/v1/daily?days=90">/api/v1/daily</a></li><li><a href="/api/v1/live">/api/v1/live</a></li>
-<li><a href="/api/v1/system">/api/v1/system</a></li></ul></body>`)
 }
 
 func queryInt(r *http.Request, key string, def int) int {
