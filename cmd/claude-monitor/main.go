@@ -22,6 +22,9 @@ import (
 	"claude-monitor/internal/web"
 )
 
+// version is stamped at build time: go build -ldflags "-X main.version=v1.0.0".
+var version = "dev"
+
 func main() {
 	if err := run(); err != nil {
 		fmt.Fprintln(os.Stderr, "claude-monitor:", err)
@@ -33,6 +36,10 @@ func run() error {
 	cfg, err := config.Load(os.Args[1:], os.Getenv, os.Stderr)
 	if err != nil {
 		return err
+	}
+	if cfg.Version {
+		fmt.Println("claude-monitor", version)
+		return nil
 	}
 	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: parseLevel(cfg.LogLevel)}))
 
@@ -70,9 +77,9 @@ func run() error {
 		ix.Run(ctx, cfg.ScanInterval)
 	}()
 
-	log.Info("starting", "claude_dir", cfg.ClaudeDir, "db", cfg.DBPath, "scan_interval", cfg.ScanInterval)
+	log.Info("starting", "version", version, "claude_dir", cfg.ClaudeDir, "db", cfg.DBPath, "scan_interval", cfg.ScanInterval)
 	srv := web.New(st, ix, log)
-	srv.SetInfo(web.Info{ClaudeDir: cfg.ClaudeDir, DBPath: cfg.DBPath, ScanInterval: cfg.ScanInterval, StartedAt: time.Now()})
+	srv.SetInfo(web.Info{ClaudeDir: cfg.ClaudeDir, DBPath: cfg.DBPath, ScanInterval: cfg.ScanInterval, StartedAt: time.Now(), Version: version})
 	err = srv.ListenAndServe(ctx, cfg.Addr)
 	stop()    // a listen failure must also stop the indexer
 	wg.Wait() // let an in-flight transaction roll back before the DB closes

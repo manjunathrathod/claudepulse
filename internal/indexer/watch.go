@@ -58,12 +58,10 @@ func (ix *Indexer) watch(ctx context.Context) {
 			if ix.ignoreEvent(ev) {
 				continue
 			}
-			// A new directory (project, session, subagents) needs its own watch.
-			if ev.Has(fsnotify.Create) {
-				if info, err := os.Stat(ev.Name); err == nil && info.IsDir() {
-					ix.addWatchTree(ev.Name)
-				}
-			}
+			// New directories are NOT watched from here: calling Add on the
+			// goroutine that drains Events can deadlock fsnotify's Windows
+			// backend when the event buffer is full. The debounced scan below
+			// ends with syncWatches() on the Run goroutine, which picks them up.
 			if timer == nil {
 				timer = time.NewTimer(debounce)
 			} else {
@@ -132,22 +130,6 @@ func (ix *Indexer) syncWatches() {
 			}
 		}
 	}
-}
-
-// addWatchTree watches dir and every directory beneath it (bounded depth:
-// projects/<p>/<session>/subagents is the deepest structure we care about).
-func (ix *Indexer) addWatchTree(dir string) {
-	ix.addWatch(dir)
-	_ = filepath.WalkDir(dir, func(p string, d os.DirEntry, err error) error {
-		if err != nil || !d.IsDir() || p == dir {
-			return nil
-		}
-		if rel, _ := filepath.Rel(dir, p); strings.Count(filepath.ToSlash(rel), "/") > 2 {
-			return filepath.SkipDir
-		}
-		ix.addWatch(p)
-		return nil
-	})
 }
 
 func (ix *Indexer) addWatch(dir string) {

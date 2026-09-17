@@ -1,6 +1,6 @@
 # claude-monitor — Implementation Plan
 
-Status: **Phases 1–5 complete. Phase 6 (polish, light theme check, README) remains.**
+Status: **All six phases complete (v1).** Ideas for later are in §10.
 Last updated 2026-09-17.
 
 ### UI design system (Phase 2, fixed)
@@ -182,7 +182,8 @@ Pages (server-rendered):
 | `/system` | CLI version, last update result, last cleanup, dir sizes, index status |
 
 JSON API (`/api/v1/...`) mirrors the above for charts/htmx partials: `summary`,
-`daily?days=`, `projects`, `sessions?project=`, `sessions/{id}`, `live`, `system`.
+`daily?days=`, `sessions?project=…`, `sessions/{id}`, `live`, `system` (project,
+settings, skills, plans and history are HTML-only in v1).
 `/healthz` → `{"status":"ok","indexed_sessions":N,"scanning":bool}`.
 
 ## 7. Phased delivery
@@ -195,7 +196,7 @@ JSON API (`/api/v1/...`) mirrors the above for charts/htmx partials: `summary`,
 | **3** Sessions | `/sessions` (project/model/range/title filters, pagination), `/sessions/{id}` (hero stats, adaptive-bucket timeline, subagents, models, tools), `/api/v1/sessions[/{id}]` | ✅ 2026-09-17 — 506-message session renders in ~30 ms |
 | **4** Settings / skills / plugins / plans / history / system pages | `/settings` (user + per-project, redacted), `/skills` (skills, marketplaces, installed/synced plugins), `/plans` (plans + searchable prompt history), `/system`; hover help on every component | ✅ 2026-09-17 — every top-level `~/.claude` item is represented |
 | **5** Live + account | fsnotify watcher (debounced, re-synced after every scan), account name + plan + rate-limit usage from `~/.claude.json` in sidebar, dashboard and System | ✅ 2026-09-17 — new session indexed ~3 s after its file appears; pruned ~3 s after deletion |
-| **6** Polish | light theme, empty states, `-reset-db`, README, `reviewer` pass | Reviewer checklist clean |
+| **6** Polish | dark/light toggle (persisted, charts re-render), version stamping (`-version`, `-ldflags -X main.version`), empty-directory smoke test, README + LICENSE, final reviewer pass | ✅ 2026-09-17 |
 
 Each phase: implement with the matching agent (`go-backend`, `db-engineer`,
 `frontend`), then run `reviewer`. Commit per phase.
@@ -233,3 +234,12 @@ Known limitations carried from the Phase 1 review (revisit in Phase 5/6):
   of a cwd) share one `settings_snapshots`/`skills` row; the last one scanned wins.
 - `MarketplacePluginCount` reports 0 for marketplaces installed outside
   `~/.claude` (the deny-list refuses paths outside the root).
+
+## 10. Ideas for later (not planned)
+
+- Cost estimates for API-key users (needs a price table; subscription users
+  have `costUSD: 0`).
+- A "compare two periods" view on the Overview.
+- Export a session's stats as CSV/JSON from the session page.
+- Optional desktop notification when a rate-limit window crosses 80 %.
+- Linux/macOS service files (the code is portable; only the docs are Windows-first).

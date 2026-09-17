@@ -3,7 +3,7 @@
 {{$i := $p.Info}}
 <section class="kpi-grid kpi-grid-4" aria-label="System summary">
   <div class="card kpi kpi-blue"><div class="kpi-label">Claude Code {{template "help.html" "Installed CLI version, from the last update record"}}</div><div class="kpi-value">{{if $.CLIVersion}}v{{$.CLIVersion}}{{else}}—{{end}}</div><div class="kpi-hint">{{with $p.LastUpdate}}updated {{ago (index . "timestamp")}}{{else}}no update record{{end}}</div></div>
-  <div class="card kpi"><div class="kpi-label">Monitor uptime {{template "help.html" "How long this claude-monitor process has been running"}}</div><div class="kpi-value">{{duration $p.Uptime}}</div><div class="kpi-hint">{{$p.GoVersion}}</div></div>
+  <div class="card kpi"><div class="kpi-label">Monitor uptime {{template "help.html" "How long this claude-monitor process has been running"}}</div><div class="kpi-value">{{duration $p.Uptime}}</div><div class="kpi-hint">claude-monitor {{if $i.Version}}{{$i.Version}}{{else}}dev{{end}} · {{$p.GoVersion}}</div></div>
   <div class="card kpi"><div class="kpi-label">Database {{template "help.html" "Size of the SQLite index incl. WAL files"}}</div><div class="kpi-value">{{bytes $p.DBBytes}}</div><div class="kpi-hint mono">{{basename $i.DBPath}}</div></div>
   <div class="card kpi kpi-purple"><div class="kpi-label">~/.claude on disk {{template "help.html" "Total bytes across every top-level entry"}}</div><div class="kpi-value">{{bytes $p.DirsTotal}}</div><div class="kpi-hint">{{len $p.Dirs}} entries</div></div>
 </section>

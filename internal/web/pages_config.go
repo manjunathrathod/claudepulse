@@ -20,6 +20,7 @@ type Info struct {
 	DBPath       string
 	ScanInterval time.Duration
 	StartedAt    time.Time
+	Version      string
 }
 
 // SetInfo records runtime configuration for display.

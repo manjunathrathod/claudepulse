@@ -20,6 +20,8 @@
     try { return JSON.parse(el.textContent); } catch (e) { return null; }
   }
 
+  var charts = [];
+
   function dailyChart() {
     var data = readJSON("daily-data");
     var canvas = document.getElementById("daily-chart");
@@ -50,7 +52,7 @@
       return dt.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
     });
 
-    new Chart(canvas, {
+    charts.push(new Chart(canvas, {
       type: "bar",
       data: { labels: labels, datasets: datasets },
       options: {
@@ -99,7 +101,7 @@
           }
         }
       }
-    });
+    }));
   }
 
   // Session timeline: one series (output tokens per bucket), so no legend; the
@@ -115,7 +117,7 @@
     Chart.defaults.color = text3;
 
     var buckets = data.buckets;
-    new Chart(canvas, {
+    charts.push(new Chart(canvas, {
       type: "bar",
       data: {
         labels: buckets.map(function (b) { return b.label; }),
@@ -164,10 +166,16 @@
                ticks: { maxTicksLimit: 5, padding: 8, font: { family: mono, size: 11 }, callback: function (v) { return compact(v); } } }
         }
       }
-    });
+    }));
   }
 
   function init() { dailyChart(); timelineChart(); }
+  // Colours are read from CSS variables at build time, so rebuild on theme change.
+  document.addEventListener("cm:theme", function () {
+    charts.forEach(function (c) { c.destroy(); });
+    charts = [];
+    init();
+  });
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {

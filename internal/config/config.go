@@ -23,6 +23,7 @@ type Config struct {
 	ScanInterval time.Duration // periodic full-rescan cadence
 	LogLevel     string        // debug|info|warn|error
 	ResetDB      bool          // delete the DB file before starting
+	Version      bool          // print the version and exit
 }
 
 // Load parses args (without the program name) on top of CM_* environment
@@ -65,6 +66,7 @@ func Load(args []string, getenv func(string) string, stderr io.Writer) (Config, 
 	fs.DurationVar(&cfg.ScanInterval, "scan-interval", def.ScanInterval, "periodic full-rescan interval")
 	fs.StringVar(&cfg.LogLevel, "log-level", def.LogLevel, "log level: debug, info, warn, error")
 	fs.BoolVar(&cfg.ResetDB, "reset-db", false, "delete the database file and re-index from scratch")
+	fs.BoolVar(&cfg.Version, "version", false, "print the version and exit")
 	if err := fs.Parse(args); err != nil {
 		return Config{}, err
 	}

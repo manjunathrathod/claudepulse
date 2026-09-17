@@ -85,17 +85,17 @@ func (ix *Indexer) Run(ctx context.Context, interval time.Duration) {
 			ix.syncWatches() // never race a concurrent Close (see below)
 		}
 	}
-	// Run is the sole owner of the watcher: it is created here, used only from
-	// this goroutine (syncWatches) and the event loop (reads), and closed here
-	// after the event loop has returned. Closing while an Add is in flight can
-	// block forever in fsnotify's Windows backend.
+	// Run is the sole owner of the watcher: it is created here, Add is only
+	// ever called from this goroutine (syncWatches), the event loop only
+	// reads, and Close happens here after the event loop has returned. Any
+	// other arrangement can deadlock fsnotify's Windows backend.
 	ix.startWatcher()
-	ix.syncWatches() // watch before the first scan so nothing created meanwhile is missed
 	watchDone := make(chan struct{})
 	go func() {
 		defer close(watchDone)
-		ix.watch(ctx)
+		ix.watch(ctx) // drain events before the first Add so the buffer cannot fill
 	}()
+	ix.syncWatches() // watch before the first scan so nothing created meanwhile is missed
 	scan("startup")
 	t := time.NewTicker(interval)
 	defer t.Stop()
@@ -174,6 +174,9 @@ func (ix *Indexer) Scan(ctx context.Context) (err error) {
 			st.LinesRead += fs.lines
 			st.Malformed += fs.malformed
 			if err != nil {
+				if ctx.Err() != nil {
+					return ctx.Err()
+				}
 				ix.log.Warn("transcript scan failed", "path", tp, "err", err)
 				continue
 			}
@@ -194,6 +197,9 @@ func (ix *Indexer) Scan(ctx context.Context) (err error) {
 				st.LinesRead += ss.lines
 				st.Malformed += ss.malformed
 				if err != nil {
+					if ctx.Err() != nil {
+						return ctx.Err()
+					}
 					ix.log.Warn("subagent scan failed", "path", sa.Path, "err", err)
 					continue
 				}

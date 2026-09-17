@@ -9,8 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 sessions, settings, skills, plugins, plans, history, system info) on
 **http://127.0.0.1:48273**. Read-only with respect to `~/.claude`; loopback only.
 
-**Current status: Phases 1–5 done — all pages, fsnotify live updates, account
-+ plan usage. Phase 6 (polish, light theme check, README) remains.** `docs/PLAN.md` is the source of
+**Current status: v1 complete — all six phases in `docs/PLAN.md` §7 are done.**
+Further work should be small, reviewed changes; keep the phase discipline
+(implement → `reviewer` agent → screenshot for UI → commit). `docs/PLAN.md` is the source of
 truth for architecture, data model, routes, the UI design system and phased
 delivery — build phase by phase from it; do not invent a different layout.
 `docs/PLAN.md` §7 tracks which phases are complete.
@@ -24,12 +25,12 @@ build step; UI assets are vendored + embedded. `jq` is not installed (use `node 
 for ad-hoc JSON).
 
 ```bash
-go build -o bin/claude-monitor.exe ./cmd/claude-monitor   # build single binary
+go build -ldflags "-X main.version=v1.0.0" -o bin/claude-monitor.exe ./cmd/claude-monitor   # build; version shows on /system
 go run ./cmd/claude-monitor                               # dev run on :48273
 go run ./cmd/claude-monitor -claude-dir ./testdata/claude-home -db ./data/test.db  # run on fixture
 go vet ./... && gofmt -l .                                # lint (gofmt must print nothing)
 go test ./... -count=1                                    # all tests (no -race on 386)
-go test ./internal/claudedir/jsonl/... -run TestDedupe -v # single test
+go test ./internal/indexer/ -run TestGoldenNumbers -v      # single test (the dedupe guard)
 curl -s http://127.0.0.1:48273/healthz                    # smoke check
 ```
 
