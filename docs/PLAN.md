@@ -1,6 +1,11 @@
 # claude-monitor — Implementation Plan
 
-Status: **planning — no application code written yet.** Last updated 2026-09-17.
+Status: **Phase 1 complete (core index + JSON API). Phase 2 (dashboard UI) next.**
+Last updated 2026-09-17.
+
+Verified during Phase 1: Claude's own `stats-cache.json` sums usage per transcript
+line (no dedupe), so its token figures run ~2–3× above the deduped API accounting
+this app computes. The UI must label the two sources rather than reconcile them.
 
 ## 1. Goal
 
@@ -162,8 +167,8 @@ JSON API (`/api/v1/...`) mirrors the above for charts/htmx partials: `summary`,
 
 | Phase | Deliverable | Done when |
 |---|---|---|
-| **0** (this) | Repo init, agents, skills, plan | ✅ |
-| **1** Core index | `config`, `claudedir` decoders, `jsonl` reader, `store` + migrations, `indexer` full scan, `/healthz`, `/api/v1/summary` | `go test ./...` green on fixtures; summary numbers match a hand count of one session |
+| **0** | Repo init, agents, skills, plan | ✅ 2026-09-17 |
+| **1** Core index | `config`, `claudedir` decoders, `jsonl` reader, `store` + migrations, `indexer` full + incremental scan, `/healthz`, `/api/v1/{summary,daily,live,system}` | ✅ 2026-09-17 — golden-number tests on fixture; real `~/.claude` (157 MB, 50 files) indexes in 1.5 s |
 | **2** Dashboard + projects | `base.html`, `/`, `/projects`, `/projects/{id}`, Chart.js daily + model charts | Renders real data in browser at :48273 |
 | **3** Sessions | `/sessions`, `/sessions/{id}`, tool-call & subagent breakdown | Longest session (697 msgs) page loads < 200 ms |
 | **4** Settings / skills / plugins / plans / history / system pages | All remaining routes | Every top-level `~/.claude` item is represented somewhere |
@@ -175,20 +180,31 @@ Each phase: implement with the matching agent (`go-backend`, `db-engineer`,
 
 ## 8. Testing strategy
 
-- `testdata/claude-home/` — a scrubbed copy of the real layout: 2 projects, 3
-  sessions (one with subagents), duplicated-usage lines included on purpose,
-  one malformed line, one 1 MB line. Built once by a small script; text content
-  replaced with `"…"`.
+- `testdata/claude-home/` — a hand-built scrubbed copy of the real layout: 2
+  projects, 2 sessions (one with a subagent), duplicated-usage lines included on
+  purpose, one malformed line, secret sentinels. Oversized lines (3 MB) are
+  covered in-memory by `jsonl.TestScanHandlesHugeLine` rather than on disk.
 - Parser tests are table-driven; store tests use in-memory SQLite; handler tests
   use `httptest` against a store seeded from the fixture.
 - Golden-number test: fixture session X must yield exactly N tokens (computed by
   hand once) — guards the dedupe rule forever.
 
-## 9. Open questions (decide before Phase 1)
+## 9. Decisions and known limitations
 
-1. Retention: index sessions Claude Code has already auto-cleaned? (Default: no —
-   if the file is gone, prune the rows; `cleanupPeriodDays` is 30.)
-2. Should project detail read the project's own `.claude/` on every request or
-   only at index time? (Default: index time, refreshed by ticker.)
-3. Windows service / tray auto-start? (Default: no; document a Task Scheduler
-   one-liner in README.)
+Decided 2026-09-17 (defaults accepted):
+1. Retention: rows are pruned when Claude Code auto-cleans a transcript
+   (`cleanupPeriodDays`, 30). Pruning is skipped when `projects/` lists empty.
+2. Project `.claude/` metadata is read at index time, refreshed by the ticker.
+3. No service/tray auto-start; README will document a Task Scheduler one-liner.
+
+Known limitations carried from the Phase 1 review (revisit in Phase 5/6):
+- `messages.id` is a global PK. If Claude Code ever copies history into a second
+  transcript with the same `message.id`s, the copy is ignored and pruning the
+  original would drop them. Verify with `claude-dir-explorer` whether
+  fork/resume produces such duplicates; a `(id, session_id)` PK would remove the risk.
+- Incremental scan resumes at the stored byte offset whenever a file grew or its
+  mtime changed. A same-size or larger *rewrite* (not append) is therefore
+  indexed incorrectly until `-reset-db`. Claude Code only appends, so this is
+  accepted for now; a cheap guard would be to re-verify the last N bytes.
+- `-db` paths containing `?`, `#` or `%` are not URI-escaped in the DSN.
+- `.credentials.json` is never opened, but its name/size appears in `dir_stats`.

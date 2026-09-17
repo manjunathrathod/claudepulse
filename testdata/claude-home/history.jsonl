@@ -1,0 +1,4 @@
+{"display":"first prompt scrubbed","pastedContents":{},"project":"C:\\fixture\\alpha","sessionId":"aaaaaaaa-0000-4000-8000-000000000001","timestamp":1788256800000}
+{"display":"third prompt scrubbed","pastedContents":{},"project":"C:\\fixture\\alpha","sessionId":"aaaaaaaa-0000-4000-8000-000000000001","timestamp":1788257400000}
+not json at all
+{"display":"beta prompt scrubbed","pastedContents":{},"project":"C:\\fixture\\beta-missing","sessionId":"bbbbbbbb-0000-4000-8000-000000000002","timestamp":1788388200000}

@@ -64,11 +64,11 @@ Every line has `"type"`. Only a handful are needed for monitoring:
 
 | `type` | Key fields | Use |
 |---|---|---|
-| `user` | `uuid`, `parentUuid`, `timestamp` (ISO), `cwd`, `sessionId`, `version`, `message.role`, `message.content` (string **or** array of blocks), `isSidechain`, `entrypoint` | message count, cwd, CLI version, first/last timestamp |
-| `assistant` | same envelope + `message.id` (`msg_…`), `message.model`, `message.usage`, `message.content[]` blocks of type `text` / `thinking` / `tool_use` | tokens per model, tool-call counts |
+| `user` | `uuid`, `parentUuid`, `timestamp` (ISO), `cwd`, `sessionId`, `version`, `message.role`, `message.content` (string **or** array of blocks), `isSidechain`, `entrypoint`, `agentId` (subagent files only) | message count, cwd, CLI version, first/last timestamp |
+| `assistant` | same envelope + `message.id` (`msg_…`), `message.model`, `message.usage`, `message.stop_reason`, `message.content[]` blocks of type `text` / `thinking` / `tool_use` | tokens per model, tool-call counts |
 | `ai-title` | `aiTitle`, `sessionId` | session display title |
 | `mode` / `permission-mode` | `mode` | informational |
-| `summary` | `summary`, `leafUuid` | older sessions may carry a summary line |
+| `summary` | `summary`, `leafUuid` | older sessions carry this instead of `ai-title` — use as title fallback |
 | `system` | misc | ignore |
 | everything else (`attachment`, `prompt_snapshot`, `file-history-snapshot`, `deferred_tools_*`, `total_tokens_reminder`, …) | — | ignore, but tolerate unknown types |
 
@@ -86,9 +86,19 @@ Every line has `"type"`. Only a handful are needed for monitoring:
 ### Parsing gotchas (these WILL corrupt numbers if ignored)
 
 1. **Duplicate assistant lines.** One API response is written as several lines
-   (one per streamed content block) that share the same `message.id` and carry the
-   *identical* `usage` object. **Dedupe token usage by `message.id`** — count usage
-   once per id, but aggregate `tool_use` blocks across all lines with that id.
+   (one per streamed content block: `thinking`, `text`, `tool_use`, …) that share
+   the same `message.id` and carry the *identical* `usage` object (verified: no id
+   ever has differing usage across its lines). **Dedupe token usage by
+   `message.id`** — count usage once per id, but aggregate `tool_use` blocks across
+   all lines with that id. The deduped message keeps the *first* line's timestamp.
+   Claude Code's own `stats-cache.json` does **not** dedupe: its per-model output
+   figures are ~2–3× the deduped API accounting. Show both, label them.
+1b. **Subagent transcripts** (`<session>/subagents/agent-<id>.jsonl`) use the same
+   line format with `agentId: "<id>"`, `isSidechain: true`, and `sessionId` equal
+   to the **parent** session. Their user prompts are the parent's task text, not
+   human prompts — exclude `agent_id IS NOT NULL` rows from prompt counts.
+1c. A model value of `<synthetic>` appears on a few assistant lines (Claude Code
+   internal messages, zero usage). Keep them but expect them in model lists.
 2. `message.content` on `user` lines is a plain string for typed prompts but an
    array of blocks for tool results / attachments. Handle both.
 3. Lines can be very large (hundreds of KB — pasted content, tool output). Use

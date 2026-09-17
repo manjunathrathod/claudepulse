@@ -9,14 +9,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 sessions, settings, skills, plugins, plans, history, system info) on
 **http://127.0.0.1:48273**. Read-only with respect to `~/.claude`; loopback only.
 
-**Current status: planning phase.** `docs/PLAN.md` is the source of truth for
-architecture, data model, routes and phased delivery. No application code exists
-yet — build it phase by phase from that plan; do not invent a different layout.
+**Current status: Phase 1 (core index + JSON API) done; Phase 2 (dashboard UI)
+next.** `docs/PLAN.md` is the source of truth for architecture, data model,
+routes and phased delivery — build phase by phase from it; do not invent a
+different layout. `docs/PLAN.md` §7 tracks which phases are complete.
 
 ## Commands
 
-Toolchain on this machine: Go 1.24 **windows/386**, git, MSYS2 gcc (not needed —
-CGO is disabled by design). No Node build step; UI assets are vendored + embedded.
+Toolchain on this machine: Go **windows/386** (32-bit). `go.mod` pins Go 1.25
+because `modernc.org/sqlite` needs it; `GOTOOLCHAIN=auto` downloads it on first
+build. MSYS2 gcc is present but unused — CGO is disabled by design. No Node
+build step; UI assets are vendored + embedded. `jq` is not installed (use `node -e`
+for ad-hoc JSON).
 
 ```bash
 go build -o bin/claude-monitor.exe ./cmd/claude-monitor   # build single binary
@@ -68,7 +72,11 @@ describes; run `reviewer` before declaring a phase done.
 
 ## Test data
 
-`testdata/claude-home/` (to be created in Phase 1) is a scrubbed miniature of
-the real `~/.claude`. Tests and UI development run against it — never against
-the live directory. Include duplicated-usage lines and a malformed line on
-purpose so the dedupe and tolerance paths are always exercised.
+`testdata/claude-home/` is a scrubbed miniature of the real `~/.claude` (see its
+README for what each quirk exercises). Tests and UI development run against it —
+never against the live directory. `internal/indexer/indexer_test.go` pins
+**golden numbers** derived from it (25 input / 270 output / 7200 cache-read
+tokens, 5 assistant messages, 4 tool calls…). If a parser change breaks them,
+re-check the dedupe rules in the `claude-dir-format` skill before editing the
+expected values. JSON fixture files containing `\\` must be written with the
+Write tool, not bash heredocs (Git Bash collapses the escapes).
