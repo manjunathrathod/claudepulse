@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"claude-monitor/internal/claudedir"
-	webassets "claude-monitor/web"
+	"claudepulse/internal/claudedir"
+	webassets "claudepulse/web"
 )
 
 var assets = webassets.FS

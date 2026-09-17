@@ -17,9 +17,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"claude-monitor/internal/claudedir"
-	"claude-monitor/internal/claudedir/jsonl"
-	"claude-monitor/internal/store"
+	"claudepulse/internal/claudedir"
+	"claudepulse/internal/claudedir/jsonl"
+	"claudepulse/internal/store"
 
 	"github.com/fsnotify/fsnotify"
 )

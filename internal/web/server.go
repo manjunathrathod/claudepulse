@@ -15,8 +15,8 @@ import (
 	"strconv"
 	"time"
 
-	"claude-monitor/internal/indexer"
-	"claude-monitor/internal/store"
+	"claudepulse/internal/indexer"
+	"claudepulse/internal/store"
 )
 
 // Server wires the mux to the store and indexer.
@@ -91,7 +91,7 @@ func (s *Server) ListenAndServe(ctx context.Context, addr string) error {
 	}
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
-		return fmt.Errorf("cannot listen on %s (is another claude-monitor running?): %w", addr, err)
+		return fmt.Errorf("cannot listen on %s (is another claudepulse running?): %w", addr, err)
 	}
 	s.addr = addr
 	srv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 10 * time.Second}

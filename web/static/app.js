@@ -171,7 +171,7 @@
 
   function init() { dailyChart(); timelineChart(); }
   // Colours are read from CSS variables at build time, so rebuild on theme change.
-  document.addEventListener("cm:theme", function () {
+  document.addEventListener("cp:theme", function () {
     charts.forEach(function (c) { c.destroy(); });
     charts = [];
     init();

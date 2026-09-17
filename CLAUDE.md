@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`claude-monitor` — a local, single-binary Go web app that indexes the user's
+`ClaudePulse` — a local, single-binary Go web app that indexes the user's
 `~/.claude` directory into SQLite and serves a dashboard (usage, projects,
 sessions, settings, skills, plugins, plans, history, system info) on
 **http://127.0.0.1:48273**. Read-only with respect to `~/.claude`; loopback only.
@@ -25,17 +25,17 @@ build step; UI assets are vendored + embedded. `jq` is not installed (use `node 
 for ad-hoc JSON).
 
 ```bash
-go build -ldflags "-X main.version=v1.0.0" -o bin/claude-monitor.exe ./cmd/claude-monitor   # build; version shows on /system
-go run ./cmd/claude-monitor                               # dev run on :48273
-go run ./cmd/claude-monitor -claude-dir ./testdata/claude-home -db ./data/test.db  # run on fixture
+go build -ldflags "-X main.version=v1.0.0" -o bin/claudepulse.exe ./cmd/claudepulse   # build; version shows on /system
+go run ./cmd/claudepulse                               # dev run on :48273
+go run ./cmd/claudepulse -claude-dir ./testdata/claude-home -db ./data/test.db  # run on fixture
 go vet ./... && gofmt -l .                                # lint (gofmt must print nothing)
 go test ./... -count=1                                    # all tests (no -race on 386)
 go test ./internal/indexer/ -run TestGoldenNumbers -v      # single test (the dedupe guard)
 curl -s http://127.0.0.1:48273/healthz                    # smoke check
 ```
 
-Config: flags `-addr -claude-dir -db -scan-interval -log-level` or env `CM_ADDR`,
-`CM_CLAUDE_DIR`, `CM_DB`, `CM_SCAN_INTERVAL`, `CM_LOG_LEVEL` (flag > env > default).
+Config: flags `-addr -claude-dir -db -scan-interval -log-level` or env `CP_ADDR`,
+`CP_CLAUDE_DIR`, `CP_DB`, `CP_SCAN_INTERVAL`, `CP_LOG_LEVEL` (flag > env > default).
 
 ## Architecture (see docs/PLAN.md §3–6 for detail)
 

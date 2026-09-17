@@ -1,4 +1,4 @@
--- claude-monitor initial schema. All timestamps are UTC RFC3339 text.
+-- ClaudePulse initial schema. All timestamps are UTC RFC3339 text.
 
 CREATE TABLE scan_state (
     path            TEXT PRIMARY KEY,

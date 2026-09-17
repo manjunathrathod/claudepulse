@@ -1,6 +1,8 @@
-# claude-monitor
+<p align="center"><img src="docs/brand/claudepulse-banner.png" alt="ClaudePulse — Track usage. Understand limits." width="541"></p>
 
-A local dashboard for your Claude Code usage. It watches `~/.claude`, indexes
+# ClaudePulse
+
+**Track usage. Understand limits.** A local dashboard for your Claude Code usage. It watches `~/.claude`, indexes
 every session transcript into a SQLite database, and serves a single-binary web
 UI on **http://127.0.0.1:48273** — tokens per day and per model, projects,
 sessions with timelines, tool usage, subagents, settings, skills & plugins,
@@ -16,8 +18,8 @@ Requires Go 1.25+ (`go.mod` pins it; `GOTOOLCHAIN=auto` fetches it) — no CGO,
 no Node.
 
 ```bash
-go build -o bin/claude-monitor.exe ./cmd/claude-monitor
-./bin/claude-monitor.exe
+go build -o bin/claudepulse.exe ./cmd/claudepulse
+./bin/claudepulse.exe
 # → open http://127.0.0.1:48273
 ```
 
@@ -26,18 +28,18 @@ The first run indexes your whole history (≈150 MB of transcripts takes about
 seconds via file-system notifications, with a full rescan every 30 s as a
 safety net.
 
-Stop it with Ctrl-C. State lives in `data/claude-monitor.db`; delete it (or
+Stop it with Ctrl-C. State lives in `data/claudepulse.db`; delete it (or
 run with `-reset-db`) to re-index from scratch.
 
 ## Options
 
 | Flag | Env | Default | Meaning |
 |---|---|---|---|
-| `-addr` | `CM_ADDR` | `127.0.0.1:48273` | Listen address. Loopback IPs only; a busy port is a hard error. |
-| `-claude-dir` | `CM_CLAUDE_DIR` | `~/.claude` | Directory to monitor. |
-| `-db` | `CM_DB` | `data/claude-monitor.db` | SQLite file. Must not be inside `-claude-dir`. |
-| `-scan-interval` | `CM_SCAN_INTERVAL` | `30s` | Safety-net rescan cadence. |
-| `-log-level` | `CM_LOG_LEVEL` | `info` | `debug` logs every file indexed and every request. |
+| `-addr` | `CP_ADDR` | `127.0.0.1:48273` | Listen address. Loopback IPs only; a busy port is a hard error. |
+| `-claude-dir` | `CP_CLAUDE_DIR` | `~/.claude` | Directory to monitor. |
+| `-db` | `CP_DB` | `data/claudepulse.db` | SQLite file. Must not be inside `-claude-dir`. |
+| `-scan-interval` | `CP_SCAN_INTERVAL` | `30s` | Safety-net rescan cadence. |
+| `-log-level` | `CP_LOG_LEVEL` | `info` | `debug` logs every file indexed and every request. |
 | `-reset-db` | — | off | Delete the database and re-index. |
 | `-version` | — | — | Print the build version and exit. |
 
@@ -61,6 +63,7 @@ Flags override environment variables, which override defaults.
 - **System** — Claude Code version and update state, account and plan usage,
   index health, disk usage per folder, database size, monitor configuration.
 
+Usage insights · limit awareness · better planning · more productivity.
 Hover the `?` next to any figure for a one-line explanation. The moon/sun
 button switches between dark and light themes (remembered per browser).
 
@@ -91,7 +94,7 @@ it is shown greyed as "reset · was N%" rather than as a current value.
   page — the same list Claude Code uses for prompt recall. Session titles,
   subagent task labels and plan headings (all title-like, written by Claude
   Code) are shown as-is.
-- The database (`data/claude-monitor.db`) contains per-message token counts,
+- The database (`data/claudepulse.db`) contains per-message token counts,
   session titles, subagent labels, tool names, paths, redacted settings, skill
   and plan metadata, a copy of `stats-cache.json`, your account email/plan and
   the truncated history. Delete it to remove all derived data.
@@ -102,9 +105,9 @@ Register a Task Scheduler job that starts the monitor when you sign in
 (adjust the paths):
 
 ```powershell
-$exe = "C:\path\to\claude-monitor.exe"
-$dir = "C:\path\to\claude-monitor"
-Register-ScheduledTask -TaskName "claude-monitor" `
+$exe = "C:\path\to\claudepulse.exe"
+$dir = "C:\path\to\ClaudePulse"
+Register-ScheduledTask -TaskName "ClaudePulse" `
   -Action (New-ScheduledTaskAction -Execute $exe -WorkingDirectory $dir) `
   -Trigger (New-ScheduledTaskTrigger -AtLogOn) `
   -Settings (New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 `
@@ -113,7 +116,7 @@ Register-ScheduledTask -TaskName "claude-monitor" `
 
 The binary is a console program, so a window stays open while it runs; run it
 through `conhost --headless` or a small VBScript wrapper if you want it hidden.
-Remove the task with `Unregister-ScheduledTask -TaskName "claude-monitor"`.
+Remove the task with `Unregister-ScheduledTask -TaskName "ClaudePulse"`.
 
 ## JSON API
 
@@ -134,7 +137,7 @@ GET /api/v1/sessions/{id}
 ```bash
 go vet ./... && gofmt -l .        # lint
 go test ./... -count=1            # tests run against testdata/claude-home, never your real data
-go run ./cmd/claude-monitor -claude-dir ./testdata/claude-home -db ./data/test.db
+go run ./cmd/claudepulse -claude-dir ./testdata/claude-home -db ./data/test.db
 ```
 
 Architecture, data model, the UI design system and the phase history are in

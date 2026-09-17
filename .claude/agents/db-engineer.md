@@ -1,6 +1,6 @@
 ---
 name: db-engineer
-description: Owns the SQLite schema, migrations and aggregate queries for claude-monitor. Use when adding tables, changing indexes, writing rollup/summary SQL, or diagnosing slow pages.
+description: Owns the SQLite schema, migrations and aggregate queries for ClaudePulse. Use when adding tables, changing indexes, writing rollup/summary SQL, or diagnosing slow pages.
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: opus
 ---

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"claude-monitor/internal/store"
+	"claudepulse/internal/store"
 )
 
 // Info is runtime configuration shown on the System page.

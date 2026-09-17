@@ -7,7 +7,7 @@
   btn.addEventListener("click", function () {
     var next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", next);
-    try { localStorage.setItem("cm-theme", next); } catch (e) {}
-    document.dispatchEvent(new CustomEvent("cm:theme", { detail: next }));
+    try { localStorage.setItem("cp-theme", next); } catch (e) {}
+    document.dispatchEvent(new CustomEvent("cp:theme", { detail: next }));
   });
 })();

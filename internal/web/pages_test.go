@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"claude-monitor/internal/store"
+	"claudepulse/internal/store"
 )
 
 func getHTML(t *testing.T, srv *httptest.Server, path string, wantStatus int) string {

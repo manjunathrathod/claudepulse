@@ -1,9 +1,9 @@
 ---
 name: go-sqlite-patterns
-description: Project conventions for Go + SQLite in claude-monitor - driver choice (pure-Go modernc.org/sqlite, no CGO), connection pragmas, embedded SQL migrations, query layout, and incremental-indexing transactions. Load before touching internal/store, internal/db, or any migration file.
+description: Project conventions for Go + SQLite in ClaudePulse - driver choice (pure-Go modernc.org/sqlite, no CGO), connection pragmas, embedded SQL migrations, query layout, and incremental-indexing transactions. Load before touching internal/store, internal/db, or any migration file.
 ---
 
-# Go + SQLite conventions for claude-monitor
+# Go + SQLite conventions for ClaudePulse
 
 ## Driver: `modernc.org/sqlite` — never `mattn/go-sqlite3`
 

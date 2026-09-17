@@ -1,11 +1,11 @@
 ---
 name: frontend
-description: Builds the server-rendered UI for claude-monitor - html/template pages, htmx partials, Chart.js charts, and the single embedded stylesheet. Use for anything under web/ (templates, static assets) and for the template-facing view models.
+description: Builds the server-rendered UI for ClaudePulse - html/template pages, htmx partials, Chart.js charts, and the single embedded stylesheet. Use for anything under web/ (templates, static assets) and for the template-facing view models.
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: opus
 ---
 
-You build the claude-monitor UI. Load the `dataviz` skill before writing any
+You build the ClaudePulse UI. Load the `dataviz` skill before writing any
 chart, and read CLAUDE.md for the page inventory.
 
 Stack (fixed — do not introduce React/Vite/Tailwind/npm):

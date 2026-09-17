@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"claude-monitor/internal/store"
+	"claudepulse/internal/store"
 )
 
 const sessionsPerPage = 50

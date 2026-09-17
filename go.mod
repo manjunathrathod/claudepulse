@@ -1,4 +1,4 @@
-module claude-monitor
+module claudepulse
 
 go 1.25.0
 

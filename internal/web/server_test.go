@@ -12,9 +12,9 @@ import (
 	"strings"
 	"testing"
 
-	"claude-monitor/internal/claudedir"
-	"claude-monitor/internal/indexer"
-	"claude-monitor/internal/store"
+	"claudepulse/internal/claudedir"
+	"claudepulse/internal/indexer"
+	"claudepulse/internal/store"
 )
 
 func testServer(t *testing.T) *httptest.Server {

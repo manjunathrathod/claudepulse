@@ -26,38 +26,38 @@ type Config struct {
 	Version      bool          // print the version and exit
 }
 
-// Load parses args (without the program name) on top of CM_* environment
+// Load parses args (without the program name) on top of CP_* environment
 // variables and built-in defaults.
 func Load(args []string, getenv func(string) string, stderr io.Writer) (Config, error) {
 	home, _ := os.UserHomeDir()
 	def := Config{
 		Addr:         "127.0.0.1:" + DefaultPort,
 		ClaudeDir:    filepath.Join(home, ".claude"),
-		DBPath:       filepath.Join("data", "claude-monitor.db"),
+		DBPath:       filepath.Join("data", "claudepulse.db"),
 		ScanInterval: 30 * time.Second,
 		LogLevel:     "info",
 	}
-	if v := getenv("CM_ADDR"); v != "" {
+	if v := getenv("CP_ADDR"); v != "" {
 		def.Addr = v
 	}
-	if v := getenv("CM_CLAUDE_DIR"); v != "" {
+	if v := getenv("CP_CLAUDE_DIR"); v != "" {
 		def.ClaudeDir = v
 	}
-	if v := getenv("CM_DB"); v != "" {
+	if v := getenv("CP_DB"); v != "" {
 		def.DBPath = v
 	}
-	if v := getenv("CM_SCAN_INTERVAL"); v != "" {
+	if v := getenv("CP_SCAN_INTERVAL"); v != "" {
 		d, err := time.ParseDuration(v)
 		if err != nil {
-			return Config{}, fmt.Errorf("CM_SCAN_INTERVAL: %w", err)
+			return Config{}, fmt.Errorf("CP_SCAN_INTERVAL: %w", err)
 		}
 		def.ScanInterval = d
 	}
-	if v := getenv("CM_LOG_LEVEL"); v != "" {
+	if v := getenv("CP_LOG_LEVEL"); v != "" {
 		def.LogLevel = v
 	}
 
-	fs := flag.NewFlagSet("claude-monitor", flag.ContinueOnError)
+	fs := flag.NewFlagSet("claudepulse", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	cfg := def
 	fs.StringVar(&cfg.Addr, "addr", def.Addr, "listen address (loopback only)")

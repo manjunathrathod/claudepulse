@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"claude-monitor/internal/store"
+	"claudepulse/internal/store"
 )
 
 const (

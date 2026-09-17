@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"claude-monitor/internal/claudedir"
-	"claude-monitor/internal/indexer"
-	"claude-monitor/internal/store"
+	"claudepulse/internal/claudedir"
+	"claudepulse/internal/indexer"
+	"claudepulse/internal/store"
 )
 
 // layout is the data every page template receives at top level.

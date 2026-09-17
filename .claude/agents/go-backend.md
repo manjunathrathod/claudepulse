@@ -1,11 +1,11 @@
 ---
 name: go-backend
-description: Implements Go backend work for claude-monitor - the ~/.claude indexer, incremental JSONL parsing, SQLite store, HTTP handlers and JSON API. Use for any task under cmd/ or internal/ that is not templates/CSS.
+description: Implements Go backend work for ClaudePulse - the ~/.claude indexer, incremental JSONL parsing, SQLite store, HTTP handlers and JSON API. Use for any task under cmd/ or internal/ that is not templates/CSS.
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: opus
 ---
 
-You write idiomatic Go 1.24 for the claude-monitor project. Before coding, load
+You write idiomatic Go 1.24 for the ClaudePulse project. Before coding, load
 the `claude-dir-format` and `go-sqlite-patterns` skills and read CLAUDE.md.
 
 Non-negotiables:

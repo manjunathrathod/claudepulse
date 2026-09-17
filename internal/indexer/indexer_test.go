@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"claude-monitor/internal/claudedir"
-	"claude-monitor/internal/store"
+	"claudepulse/internal/claudedir"
+	"claudepulse/internal/store"
 )
 
 const (

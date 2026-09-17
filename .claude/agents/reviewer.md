@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Read-only code reviewer for claude-monitor. Use after a feature is implemented to check correctness against the plan, security of file access, token-dedupe logic, SQL injection/idempotency, and that tests actually cover the parser paths.
+description: Read-only code reviewer for ClaudePulse. Use after a feature is implemented to check correctness against the plan, security of file access, token-dedupe logic, SQL injection/idempotency, and that tests actually cover the parser paths.
 tools: Read, Grep, Glob, Bash
 model: opus
 ---

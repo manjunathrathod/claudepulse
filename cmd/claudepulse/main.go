@@ -1,4 +1,4 @@
-// Command claude-monitor indexes a Claude Code home directory (~/.claude)
+// Command claudepulse (ClaudePulse) indexes a Claude Code home directory (~/.claude)
 // into SQLite and serves a local dashboard on http://127.0.0.1:48273.
 package main
 
@@ -15,11 +15,11 @@ import (
 	"syscall"
 	"time"
 
-	"claude-monitor/internal/claudedir"
-	"claude-monitor/internal/config"
-	"claude-monitor/internal/indexer"
-	"claude-monitor/internal/store"
-	"claude-monitor/internal/web"
+	"claudepulse/internal/claudedir"
+	"claudepulse/internal/config"
+	"claudepulse/internal/indexer"
+	"claudepulse/internal/store"
+	"claudepulse/internal/web"
 )
 
 // version is stamped at build time: go build -ldflags "-X main.version=v1.0.0".
@@ -27,7 +27,7 @@ var version = "dev"
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, "claude-monitor:", err)
+		fmt.Fprintln(os.Stderr, "claudepulse:", err)
 		os.Exit(1)
 	}
 }
@@ -38,7 +38,7 @@ func run() error {
 		return err
 	}
 	if cfg.Version {
-		fmt.Println("claude-monitor", version)
+		fmt.Println("claudepulse", version)
 		return nil
 	}
 	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: parseLevel(cfg.LogLevel)}))

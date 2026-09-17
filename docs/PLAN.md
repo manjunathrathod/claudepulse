@@ -1,4 +1,4 @@
-# claude-monitor — Implementation Plan
+# ClaudePulse — Implementation Plan
 
 Status: **All six phases complete (v1).** Ideas for later are in §10.
 Last updated 2026-09-17.
@@ -59,7 +59,7 @@ Full reference: `.claude/skills/claude-dir-format/SKILL.md`. Highlights:
 ## 3. Architecture
 
 ```
-┌──────────────────────────── claude-monitor.exe ────────────────────────────┐
+┌──────────────────────────── claudepulse.exe ────────────────────────────┐
 │                                                                            │
 │  internal/claudedir      internal/indexer          internal/store          │
 │  (walk + parse files) ─► (incremental sync, ───►  (SQLite, migrations,     │
@@ -77,7 +77,7 @@ Full reference: `.claude/skills/claude-dir-format/SKILL.md`. Highlights:
 Package layout:
 
 ```
-cmd/claude-monitor/main.go      flags/env → config → store.Open → indexer.Start → web.Serve
+cmd/claudepulse/main.go      flags/env → config → store.Open → indexer.Start → web.Serve
 internal/config                 Config struct, defaults, flag+env parsing
 internal/claudedir              Path helpers, deny-list, typed decoders for every file kind
 internal/claudedir/jsonl        Streaming transcript reader (big-buffer scanner, tolerant)
@@ -100,7 +100,7 @@ docs/                           This plan + ADRs
 | Styling | Single `app.css`, CSS variables, dark-first with light override | User's Claude theme is dark |
 | Logging | `log/slog` | stdlib |
 | Port | **48273**, loopback only | Unassigned by IANA, unused by common dev tools; fail loudly if busy |
-| Config | flags > env (`CM_*`) > defaults | See `run-app` skill |
+| Config | flags > env (`CP_*`) > defaults | See `run-app` skill |
 
 Only two external modules: `modernc.org/sqlite`, `github.com/fsnotify/fsnotify`.
 

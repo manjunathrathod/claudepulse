@@ -1,7 +1,10 @@
-/* claude-monitor — dark-first glass dashboard. Tokens on :root, light override below. */
+/* ClaudePulse — dark-first glass dashboard. Tokens on :root, light override below. */
 
 :root {
   color-scheme: dark;
+  --brand-a: #3E4CF9;
+  --brand-b: #2576EA;
+  --brand-c: #29D9CA;
   --bg: #0b0d14;
   --bg-glow-1: rgba(79, 143, 247, .14);
   --bg-glow-2: rgba(167, 139, 250, .12);
@@ -79,19 +82,19 @@ a { color: inherit; text-decoration: none; }
   background: linear-gradient(180deg, var(--surface-2), transparent 40%);
   backdrop-filter: blur(18px);
 }
-.brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 22px; font-weight: 600; letter-spacing: -.01em; }
-.brand-mark {
-  width: 26px; height: 26px; border-radius: 8px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 0 18px rgba(79,143,247,.45), 0 0 0 1px rgba(255,255,255,.08) inset;
-}
+.brand { display: flex; align-items: center; gap: 10px; padding: 2px 6px 20px; letter-spacing: -.01em; }
+.brand-mark { width: 34px; height: 34px; flex: none; filter: drop-shadow(0 0 12px rgba(41,217,202,.35)); }
+.brand-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.brand-text { font-size: 17px; font-weight: 700; color: var(--text-1); line-height: 1.1; }
+.brand-pulse { background: linear-gradient(90deg, #2F7BF2, #6E63F7); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.brand-tag { font-size: 10.5px; color: var(--text-3); white-space: nowrap; }
+:root[data-theme="light"] .brand-text { color: #091B45; }
 :root[data-theme="light"] .card { box-shadow: var(--shadow); }
 :root[data-theme="light"] .swatch { box-shadow: 0 0 0 2px var(--surface-solid); }
 :root[data-theme="light"] .chip.ok { background: rgba(16,185,129,.12); color: #047857; border-color: rgba(16,185,129,.35); }
 :root[data-theme="light"] .chip.warn { background: rgba(245,158,11,.14); color: #b45309; border-color: rgba(245,158,11,.4); }
 :root[data-theme="light"] .warn-text { color: #b45309; }
 :root[data-theme="light"] .status-pill .dot { box-shadow: none; }
-.brand-dim { color: var(--text-3); font-weight: 500; }
 
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-group { margin: 14px 10px 6px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
@@ -322,7 +325,7 @@ pre.json { margin: 0; padding: 14px 16px; border-radius: var(--radius-sm); backg
 /* ---- account block ---- */
 .account { display: flex; align-items: center; gap: 10px; padding: 8px 8px 12px; margin-bottom: 8px; border-bottom: 1px solid var(--border); }
 .account:hover .account-name { color: var(--accent); }
-.avatar { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 0 14px -2px var(--accent); flex: none; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; color: #fff; background: linear-gradient(135deg, var(--brand-a), var(--brand-c)); box-shadow: 0 0 14px -2px var(--brand-b); flex: none; }
 .account-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .account-name { font-size: 13px; font-weight: 600; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .account-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-3); }

@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"claude-monitor/internal/claudedir"
-	"claude-monitor/internal/store"
+	"claudepulse/internal/claudedir"
+	"claudepulse/internal/store"
 )
 
 // scanConfig refreshes everything that is not a transcript: per-project
